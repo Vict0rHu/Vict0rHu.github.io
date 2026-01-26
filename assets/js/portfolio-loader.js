@@ -167,7 +167,7 @@ class PortfolioLoader {
    */
   createPortfolioItem(project) {
     const item = document.createElement('div');
-    const filterClass = project.filter ? `filter-${project.filter}` : '';
+    const filterClass = project.filter ? `filter-${project.filter.toLowerCase()}` : '';
     const thumbnail = project.thumbnail || (project.images && project.images[0]) || '';
     
     item.className = 'col-lg-4 col-md-6 portfolio-item isotope-item ' + filterClass;
@@ -228,9 +228,11 @@ class PortfolioLoader {
                 initIsotope.arrange({
                   filter: this.getAttribute('data-filter')
                 });
+                /*
                 if (typeof AOS !== 'undefined' && typeof aosInit === 'function') {
                   aosInit();
                 }
+                */
               });
             });
           }

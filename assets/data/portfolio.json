@@ -4,7 +4,7 @@
       "id": "app-project-1",
       "title": "Mobile App Design",
       "category": "App Development",
-      "filter": "app",
+      "filter": "Projects",
       "thumbnail": "assets/img/portfolio/app-1.jpg",
       "description": "Modern mobile application with intuitive user interface",
       "fullDescription": "This mobile application project showcases a modern design approach with focus on user experience. The app features a clean interface, smooth animations, and responsive design that works seamlessly across different devices.",
@@ -13,14 +13,13 @@
         "assets/img/portfolio/app-1.jpg",
         "assets/img/portfolio/app-2.jpg",
         "assets/img/portfolio/app-3.jpg"
-      ],
-      "technologies": ["React Native", "TypeScript", "Firebase"]
+      ]
     },
     {
       "id": "app-project-2",
       "title": "iOS Application",
       "category": "App Development",
-      "filter": "app",
+      "filter": "Projects",
       "thumbnail": "assets/img/portfolio/app-2.jpg",
       "description": "Native iOS app with advanced features",
       "fullDescription": "A comprehensive iOS application built with Swift and SwiftUI. The app includes advanced features such as real-time synchronization, offline mode, and seamless integration with cloud services.",
@@ -28,14 +27,13 @@
       "images": [
         "assets/img/portfolio/app-2.jpg",
         "assets/img/portfolio/app-3.jpg"
-      ],
-      "technologies": ["Swift", "SwiftUI", "Core Data"]
+      ]
     },
     {
       "id": "app-project-3",
       "title": "Cross-Platform App",
       "category": "App Development",
-      "filter": "app",
+      "filter": "Projects",
       "thumbnail": "assets/img/portfolio/app-3.jpg",
       "description": "Unified app experience across all platforms",
       "fullDescription": "This cross-platform application provides a consistent user experience across iOS, Android, and Web platforms. Built with modern frameworks and best practices.",
@@ -43,14 +41,13 @@
       "images": [
         "assets/img/portfolio/app-3.jpg",
         "assets/img/portfolio/app-1.jpg"
-      ],
-      "technologies": ["Flutter", "Dart", "REST API"]
+      ]
     },
     {
       "id": "product-project-1",
       "title": "E-Commerce Platform",
       "category": "Product Design",
-      "filter": "product",
+      "filter": "Research",
       "thumbnail": "assets/img/portfolio/product-1.jpg",
       "description": "Complete e-commerce solution with payment integration",
       "fullDescription": "A full-featured e-commerce platform with shopping cart, payment processing, order management, and customer dashboard. The platform supports multiple payment methods and provides real-time inventory tracking.",
@@ -59,14 +56,13 @@
         "assets/img/portfolio/product-1.jpg",
         "assets/img/portfolio/product-2.jpg",
         "assets/img/portfolio/product-3.jpg"
-      ],
-      "technologies": ["React", "Node.js", "MongoDB", "Stripe"]
+      ]
     },
     {
       "id": "product-project-2",
       "title": "SaaS Dashboard",
       "category": "Product Design",
-      "filter": "product",
+      "filter": "Research",
       "thumbnail": "assets/img/portfolio/product-2.jpg",
       "description": "Analytics dashboard for business intelligence",
       "fullDescription": "A comprehensive SaaS dashboard that provides real-time analytics, data visualization, and business intelligence tools. Features include customizable widgets, export functionality, and role-based access control.",
@@ -74,14 +70,13 @@
       "images": [
         "assets/img/portfolio/product-2.jpg",
         "assets/img/portfolio/product-3.jpg"
-      ],
-      "technologies": ["Vue.js", "Python", "PostgreSQL", "D3.js"]
+      ]
     },
     {
       "id": "product-project-3",
       "title": "Project Management Tool",
       "category": "Product Design",
-      "filter": "product",
+      "filter": "Research",
       "thumbnail": "assets/img/portfolio/product-3.jpg",
       "description": "Collaborative project management platform",
       "fullDescription": "An intuitive project management tool that helps teams collaborate effectively. Features include task tracking, team communication, file sharing, and progress visualization with Gantt charts and Kanban boards.",
@@ -89,14 +84,13 @@
       "images": [
         "assets/img/portfolio/product-3.jpg",
         "assets/img/portfolio/product-1.jpg"
-      ],
-      "technologies": ["Angular", "NestJS", "MySQL", "WebSocket"]
+      ]
     },
     {
       "id": "branding-project-1",
       "title": "Corporate Identity",
       "category": "Branding",
-      "filter": "branding",
+      "filter": "Competitions",
       "thumbnail": "assets/img/portfolio/branding-1.jpg",
       "description": "Complete brand identity design for tech startup",
       "fullDescription": "A comprehensive branding project that includes logo design, color palette, typography, and brand guidelines. The identity reflects the company's innovative spirit and modern approach to technology.",
@@ -105,14 +99,13 @@
         "assets/img/portfolio/branding-1.jpg",
         "assets/img/portfolio/branding-2.jpg",
         "assets/img/portfolio/branding-3.jpg"
-      ],
-      "technologies": ["Adobe Illustrator", "Adobe Photoshop", "Brand Guidelines"]
+      ]
     },
     {
       "id": "branding-project-2",
       "title": "Logo Design Collection",
       "category": "Branding",
-      "filter": "branding",
+      "filter": "Competitions",
       "thumbnail": "assets/img/portfolio/branding-2.jpg",
       "description": "Modern logo designs for various clients",
       "fullDescription": "A collection of logo designs created for different industries. Each logo is unique and tailored to the client's brand personality, ensuring memorable and effective brand recognition.",
@@ -120,14 +113,13 @@
       "images": [
         "assets/img/portfolio/branding-2.jpg",
         "assets/img/portfolio/branding-3.jpg"
-      ],
-      "technologies": ["Logo Design", "Brand Strategy", "Visual Identity"]
+      ]
     },
     {
       "id": "branding-project-3",
       "title": "Rebranding Campaign",
       "category": "Branding",
-      "filter": "branding",
+      "filter": "Competitions",
       "thumbnail": "assets/img/portfolio/branding-3.jpg",
       "description": "Complete rebranding for established company",
       "fullDescription": "A comprehensive rebranding project that transformed an established company's visual identity. The project included market research, brand positioning, and complete visual system redesign.",
@@ -135,14 +127,13 @@
       "images": [
         "assets/img/portfolio/branding-3.jpg",
         "assets/img/portfolio/branding-1.jpg"
-      ],
-      "technologies": ["Brand Strategy", "Visual Design", "Marketing Materials"]
+      ]
     },
     {
       "id": "books-project-1",
       "title": "Book Cover Design",
       "category": "Publishing",
-      "filter": "books",
+      "filter": "Coursework",
       "thumbnail": "assets/img/portfolio/books-1.jpg",
       "description": "Eye-catching book cover designs for fiction series",
       "fullDescription": "A series of book cover designs for a popular fiction series. Each cover is designed to capture the essence of the story while maintaining visual consistency across the series.",
@@ -151,14 +142,13 @@
         "assets/img/portfolio/books-1.jpg",
         "assets/img/portfolio/books-2.jpg",
         "assets/img/portfolio/books-3.jpg"
-      ],
-      "technologies": ["Adobe InDesign", "Typography", "Illustration"]
+      ]
     },
     {
       "id": "books-project-2",
       "title": "E-Book Layout",
       "category": "Publishing",
-      "filter": "books",
+      "filter": "Coursework",
       "thumbnail": "assets/img/portfolio/books-2.jpg",
       "description": "Professional e-book formatting and design",
       "fullDescription": "Professional e-book design and formatting services. The project includes typography selection, layout design, and optimization for various e-reader devices to ensure the best reading experience.",
@@ -166,14 +156,13 @@
       "images": [
         "assets/img/portfolio/books-2.jpg",
         "assets/img/portfolio/books-3.jpg"
-      ],
-      "technologies": ["E-Book Formatting", "Typography", "Digital Publishing"]
+      ]
     },
     {
       "id": "books-project-3",
       "title": "Academic Publication",
       "category": "Publishing",
-      "filter": "books",
+      "filter": "Coursework",
       "thumbnail": "assets/img/portfolio/books-3.jpg",
       "description": "Layout design for academic research publication",
       "fullDescription": "Professional layout design for an academic research publication. The design emphasizes readability and proper citation formatting while maintaining a clean, scholarly aesthetic.",
@@ -181,8 +170,7 @@
       "images": [
         "assets/img/portfolio/books-3.jpg",
         "assets/img/portfolio/books-1.jpg"
-      ],
-      "technologies": ["Academic Publishing", "LaTeX", "Typography"]
+      ]
     }
   ]
 }

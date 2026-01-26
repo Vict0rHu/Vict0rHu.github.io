@@ -375,12 +375,24 @@ h6 {
 
 .footer .copyright p {
   margin-bottom: 0;
+  color: #999;
 }
 
 .footer .credits {
   margin-top: 4px;
   font-size: 13px;
   text-align: center;
+  color: #999;
+}
+
+.footer .credits a {
+  color: #999;
+  text-decoration: none;
+}
+
+.footer .credits a:hover {
+  color: #777;
+  text-decoration: underline;
 }
 
 /*--------------------------------------------------------------

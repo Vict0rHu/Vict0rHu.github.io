@@ -115,7 +115,7 @@
 
   /**
    * Init isotope layout and filters
-   */
+   
   document.querySelectorAll('.isotope-layout').forEach(function(isotopeItem) {
     let layout = isotopeItem.getAttribute('data-layout') ?? 'masonry';
     let filter = isotopeItem.getAttribute('data-default-filter') ?? '*';
@@ -145,7 +145,7 @@
     });
 
   });
-
+  */
   /**
    * Init swiper sliders
    */
