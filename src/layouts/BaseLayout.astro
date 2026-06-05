@@ -1,0 +1,87 @@
+---
+import Sidebar from '../components/Sidebar.astro';
+import Footer from '../components/Footer.astro';
+import { SITE, withBase } from '../lib/site';
+
+const {
+  title = SITE.title,
+  description = SITE.description,
+  ogImage = SITE.defaultOgImage,
+  ogType = 'website',
+  bodyClass = '',
+  home = false,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = new URL(withBase(ogImage), Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <!-- Favicons -->
+    <link href={withBase('/assets/img/favicon.png')} rel="icon" />
+    <link href={withBase('/assets/img/apple-touch-icon.png')} rel="apple-touch-icon" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Poppins:wght@400;500;600&family=Raleway:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Vendor CSS -->
+    <link href={withBase('/assets/vendor/bootstrap/css/bootstrap.min.css')} rel="stylesheet" />
+    <link href={withBase('/assets/vendor/bootstrap-icons/bootstrap-icons.css')} rel="stylesheet" />
+    <link href={withBase('/assets/vendor/aos/aos.css')} rel="stylesheet" />
+    <link href={withBase('/assets/vendor/glightbox/css/glightbox.min.css')} rel="stylesheet" />
+    <link href={withBase('/assets/vendor/swiper/swiper-bundle.min.css')} rel="stylesheet" />
+
+    <!-- Main CSS -->
+    <link href={withBase('/assets/css/main.css')} rel="stylesheet" />
+  </head>
+
+  <body class={bodyClass}>
+    <Sidebar home={home} />
+
+    <main class="main">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <!-- Scroll Top -->
+    <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"
+      ><i class="bi bi-arrow-up-short"></i></a
+    >
+
+    <!-- Preloader -->
+    <div id="preloader"></div>
+
+    <!-- Vendor JS -->
+    <script is:inline src={withBase('/assets/vendor/aos/aos.js')}></script>
+    <script is:inline src={withBase('/assets/vendor/glightbox/js/glightbox.min.js')}></script>
+    <script is:inline src={withBase('/assets/vendor/swiper/swiper-bundle.min.js')}></script>
+
+    <!-- Site chrome (header toggle, scrollspy, scroll-top, AOS/Swiper/GLightbox init) -->
+    <script is:inline src={withBase('/assets/js/main.js')}></script>
+  </body>
+</html>

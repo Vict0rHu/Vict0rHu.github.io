@@ -1,0 +1,35 @@
+---
+import { SITE, withBase } from '../lib/site';
+
+// `home` = true when rendered on the index page (nav uses in-page hashes);
+// on other pages the nav links jump back to the homepage sections.
+const { home = false } = Astro.props;
+const link = (hash: string) => (home ? hash : withBase('/') + hash);
+---
+
+<header id="header" class="header dark-background d-flex flex-column">
+  <i class="header-toggle d-xl-none bi bi-list"></i>
+
+  <div class="profile-img">
+    <img src={withBase('/assets/img/my-profile-img.jpg')} alt="Victor Hu" class="img-fluid rounded-circle" />
+  </div>
+
+  <a href={withBase('/')} class="logo d-flex align-items-center justify-content-center">
+    <h1 class="sitename">{SITE.name}</h1>
+  </a>
+
+  <div class="social-links text-center">
+    <a href={`mailto:${SITE.email}`} class="email" aria-label="Email"><i class="bi bi-envelope"></i></a>
+    <a href={SITE.socials.instagram} class="instagram" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+    <a href={SITE.socials.github} class="github" aria-label="GitHub"><i class="bi bi-github"></i></a>
+    <a href={SITE.socials.linkedin} class="linkedin" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+  </div>
+
+  <nav id="navmenu" class="navmenu">
+    <ul>
+      <li><a href={link('#about')} class={home ? 'active' : ''}><i class="bi bi-person navicon"></i> About</a></li>
+      <li><a href={link('#resume')}><i class="bi bi-file-earmark-text navicon"></i> Resume</a></li>
+      <li><a href={link('#portfolio')}><i class="bi bi-images navicon"></i> Portfolio</a></li>
+    </ul>
+  </nav>
+</header>

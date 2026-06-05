@@ -1,0 +1,157 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withBase } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects', ({ data }) => !data.draft);
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const d = project.data;
+const { Content } = await render(project);
+
+// Fall back to the thumbnail if no media is supplied.
+const media =
+  d.media.length > 0 ? d.media : [{ type: 'image' as const, src: d.thumbnail, alt: d.title }];
+
+const isMp4 = (src: string) => /\.mp4($|\?)/i.test(src);
+const ogImage = media.find((m) => m.type === 'image')?.src ?? d.thumbnail;
+
+const swiperConfig = {
+  loop: media.length > 1,
+  speed: 600,
+  autoplay: { delay: 5000 },
+  slidesPerView: 1,
+  pagination: { el: '.swiper-pagination', type: 'bullets', clickable: true },
+};
+---
+
+<BaseLayout
+  title={`${d.title} — Victor Hu`}
+  description={d.description}
+  ogImage={ogImage}
+  ogType="article"
+  bodyClass="portfolio-details-page"
+>
+  <!-- Page Title -->
+  <div class="page-title dark-background">
+    <div class="container d-lg-flex justify-content-between align-items-center">
+      <h1 class="mb-2 mb-lg-0">{d.title}</h1>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href={withBase('/')}>Home</a></li>
+          <li><a href={withBase('/#portfolio')}>Portfolio</a></li>
+          <li class="current">{d.title}</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Portfolio Details Section -->
+  <section id="portfolio-details" class="portfolio-details section">
+    <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <div class="row gy-4">
+        <div class="col-lg-8">
+          <div class="portfolio-details-slider swiper init-swiper">
+            <script type="application/json" class="swiper-config" set:html={JSON.stringify(swiperConfig)} />
+
+            <div class="swiper-wrapper align-items-center">
+              {
+                media.map((m) =>
+                  m.type === 'video' ? (
+                    <div class="swiper-slide">
+                      {isMp4(m.src) ? (
+                        <video controls src={withBase(m.src)} class="w-100" />
+                      ) : (
+                        <div class="ratio ratio-16x9">
+                          <iframe src={m.src} title={m.alt ?? d.title} allowfullscreen loading="lazy" />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div class="swiper-slide">
+                      <a
+                        href={withBase(m.src)}
+                        class="glightbox"
+                        data-gallery={`project-${project.id}`}
+                        aria-label={m.alt ?? d.title}
+                      >
+                        <img src={withBase(m.src)} alt={m.alt ?? d.title} loading="lazy" />
+                      </a>
+                    </div>
+                  )
+                )
+              }
+            </div>
+            <div class="swiper-pagination"></div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="portfolio-info" data-aos="fade-up" data-aos-delay="200">
+            <h3>Project Information</h3>
+            <ul>
+              {d.category && <li><strong>Category</strong>: {d.category}</li>}
+              {d.role && <li><strong>Role</strong>: {d.role}</li>}
+              {d.date && <li><strong>Date</strong>: {d.date}</li>}
+            </ul>
+
+            {
+              d.tech.length > 0 && (
+                <div class="portfolio-tech">
+                  <strong>Tech Stack</strong>
+                  <div class="tech-chips">
+                    {d.tech.map((t) => <span class="tech-chip">{t}</span>)}
+                  </div>
+                </div>
+              )
+            }
+
+            {
+              d.links.length > 0 && (
+                <div class="portfolio-links">
+                  {d.links.map((l) => (
+                    <a class="btn-portfolio" href={l.url} target="_blank" rel="noopener noreferrer">
+                      {l.icon && <i class={`bi ${l.icon}`} />} {l.label}
+                    </a>
+                  ))}
+                </div>
+              )
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="portfolio-description" data-aos="fade-up" data-aos-delay="200">
+            <h2>{d.title}</h2>
+            <div class="portfolio-narrative">
+              <Content />
+            </div>
+
+            {
+              d.highlights.length > 0 && (
+                <>
+                  <h3 class="highlights-title">Highlights</h3>
+                  <ul class="portfolio-highlights">
+                    {d.highlights.map((h) => <li>{h}</li>)}
+                  </ul>
+                </>
+              )
+            }
+
+            <a class="back-link" href={withBase('/#portfolio')}>
+              <i class="bi bi-arrow-left"></i> Back to all projects
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
