@@ -9,21 +9,12 @@ const detailUrl = withBase(`/portfolio/${project.id}/`);
 ---
 
 <div class={`col-lg-4 col-md-6 portfolio-item ${filterClass}`}>
-  <div class="portfolio-content h-100">
+  <a href={detailUrl} class="portfolio-content h-100" aria-label={`View ${d.title}`}>
     <img src={thumb} class="img-fluid" alt={d.title} loading="lazy" />
     <div class="portfolio-info">
       <h4>{d.title}</h4>
       <p>{d.description}</p>
-      <a
-        href={thumb}
-        title={d.title}
-        data-gallery={`portfolio-gallery-${d.filter}`}
-        class="glightbox preview-link"
-        aria-label={`Preview ${d.title}`}><i class="bi bi-zoom-in"></i></a
-      >
-      <a href={detailUrl} title="More Details" class="details-link" aria-label={`Details for ${d.title}`}
-        ><i class="bi bi-link-45deg"></i></a
-      >
+      <span class="details-link" aria-hidden="true"><i class="bi bi-arrow-right-circle"></i></span>
     </div>
-  </div>
+  </a>
 </div>

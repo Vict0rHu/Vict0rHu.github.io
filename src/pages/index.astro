@@ -2,19 +2,60 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
-import { SITE } from '../lib/site';
+import { SITE, withBase } from '../lib/site';
 
 const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
   (a, b) => a.data.order - b.data.order
 );
 
 const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
+
+// Hero typing animation roles
+const typedRoles = [
+  'Robotics Engineer',
+  'Perception & Control',
+  'Imitation Learning',
+  'Embedded & Mechatronics',
+];
 ---
 
 <BaseLayout home={true} bodyClass="index-page">
+  <!-- Hero Section -->
+  <section id="hero" class="hero-intro">
+    <div class="container" data-aos="fade-up">
+      <div class="row align-items-center gy-4">
+        <div class="col-lg-7 hero-text">
+          <p class="status-pill"><span class="dot"></span> Currently: {SITE.currentRole}</p>
+
+          <h1>I build robots that <span class="accent">see, feel, and act.</span></h1>
+
+          <p class="typed-line">
+            <span class="prompt">&gt;</span>
+            <span class="typed" data-roles={JSON.stringify(typedRoles)}></span><span class="caret">▏</span>
+          </p>
+
+          <div class="hero-cta">
+            <a href="#portfolio" class="btn-hero primary">View My Work</a>
+            <a href="#contact" class="btn-hero ghost">Get in Touch</a>
+            {
+              SITE.resume && (
+                <a href={withBase(SITE.resume)} class="btn-hero ghost"><i class="bi bi-download"></i> Résumé</a>
+              )
+            }
+          </div>
+        </div>
+
+        <div class="col-lg-5 hero-visual d-none d-lg-block">
+          <canvas class="node-graph" aria-hidden="true"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- About Section -->
   <section id="about" class="about section">
     <div class="container section-title" data-aos="fade-up">
+      <span class="eyebrow">01 · About</span>
       <h2>About</h2>
       <p>{SITE.tagline}</p>
     </div>
@@ -25,14 +66,12 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
           <img src="/assets/img/my-profile-img.jpg" class="img-fluid" alt="Victor Hu Profile" />
         </div>
         <div class="col-lg-8 content">
-          <h2>From Mechanical Roots to Software Intelligence</h2>
+          <h2>From Mechanical Roots to Robotic Intelligence</h2>
 
           <p>
-            I started my journey with a dual focus in <strong>Mechatronics</strong> and
-            <strong>Computer Science</strong> because I wanted the capability to build a prototype from
-            scratch, not just designing the mechanism, but also writing the control logic that brings it
-            to life. This hands-on background allows me to debug issues where hardware and software
-            intersect.
+            I started with a dual focus in <strong>Mechatronics</strong> and
+            <strong>Computer Science</strong> because I wanted to build a prototype from scratch: designing
+            the mechanism, wiring the electronics, and writing the control logic that brings it to life.
           </p>
 
           <div class="row">
@@ -44,7 +83,7 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
                 </li>
                 <li>
                   <i class="bi bi-chevron-right"></i> <strong>Focus:</strong>
-                  <span>Simulation, Tooling, Integration</span>
+                  <span>Robotics, Perception, Control</span>
                 </li>
                 <li>
                   <i class="bi bi-chevron-right"></i> <strong>GitHub:</strong>
@@ -71,16 +110,15 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
           </div>
 
           <p class="py-3">
-            Currently at <strong>Purdue University</strong>, my focus has evolved from building
-            individual robots to engineering the <strong>infrastructure</strong> that makes robotic
-            development scalable. I enjoy creating internal tools, automating testing workflows, and
-            validating algorithms in simulation before they touch real hardware.
+            My work has centered on robots that perceive and act: <strong>tactile–visual sensor fusion</strong>
+            in the lab, an <strong>autonomous car</strong> for navigation and target shooting in coursework,
+            and now <strong>robot imitation learning</strong> as an AI &amp; Robotics Intern at
+            <strong>Factory Intelligence</strong>.
           </p>
 
           <p>
-            I am eager to bring this "full-stack" perspective, combining system-level thinking with
-            software engineering rigor, to an internship role in <strong>Robotics Software</strong> or
-            <strong>Infrastructure Tooling</strong> in 2026.
+            My core is <strong>robotics, mechatronics, and embedded systems</strong>: STM32 firmware, ROS2,
+            simulation, and computer vision, turning ideas into working hardware.
           </p>
         </div>
       </div>
@@ -90,6 +128,7 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
   <!-- Skills Section -->
   <section id="skills" class="skills section light-background">
     <div class="container section-title" data-aos="fade-up">
+      <span class="eyebrow">02 · Skills</span>
       <h2>Technical Skills</h2>
     </div>
 
@@ -113,11 +152,26 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
           <div class="icon-box w-100">
             <h4><i class="bi bi-eye"></i> AI & Computer Vision</h4>
             <div class="mt-3">
-              <span class="badge bg-secondary me-1 mb-2 p-2">TensorFlow</span>
-              <span class="badge bg-secondary me-1 mb-2 p-2">OpenCV</span>
+              <span class="badge bg-secondary me-1 mb-2 p-2">Imitation Learning</span>
               <span class="badge bg-secondary me-1 mb-2 p-2">Diffusion Policy</span>
               <span class="badge bg-secondary me-1 mb-2 p-2">Sensor Fusion</span>
+              <span class="badge bg-secondary me-1 mb-2 p-2">TensorFlow</span>
+              <span class="badge bg-secondary me-1 mb-2 p-2">OpenCV</span>
               <span class="badge bg-secondary me-1 mb-2 p-2">Edge Inference</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6 col-md-6 d-flex align-items-stretch mb-4">
+          <div class="icon-box w-100">
+            <h4><i class="bi bi-cpu"></i> Embedded & Mechatronics</h4>
+            <div class="mt-3">
+              <span class="badge bg-dark me-1 mb-2 p-2">Microcontroller (STM32)</span>
+              <span class="badge bg-dark me-1 mb-2 p-2">Circuit Wiring</span>
+              <span class="badge bg-dark me-1 mb-2 p-2">SolidWorks</span>
+              <span class="badge bg-dark me-1 mb-2 p-2">AutoCAD</span>
+              <span class="badge bg-dark me-1 mb-2 p-2">3D Printing</span>
+              <span class="badge bg-dark me-1 mb-2 p-2">Rapid Prototyping</span>
             </div>
           </div>
         </div>
@@ -127,26 +181,12 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
             <h4><i class="bi bi-code-slash"></i> Languages & Tools</h4>
             <div class="mt-3">
               <span class="badge bg-primary me-1 mb-2 p-2">Python</span>
+              <span class="badge bg-primary me-1 mb-2 p-2">C / Embedded C</span>
               <span class="badge bg-primary me-1 mb-2 p-2">Bash/Expect</span>
-              <span class="badge bg-primary me-1 mb-2 p-2">Assembly Language</span>
               <span class="badge bg-primary me-1 mb-2 p-2">MATLAB</span>
               <span class="badge bg-primary me-1 mb-2 p-2">SQL</span>
               <span class="badge bg-primary me-1 mb-2 p-2">Git/GitHub</span>
               <span class="badge bg-primary me-1 mb-2 p-2">Linux/SSH</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-6 col-md-6 d-flex align-items-stretch mb-4">
-          <div class="icon-box w-100">
-            <h4><i class="bi bi-cpu"></i> Mechatronics & Hardware</h4>
-            <div class="mt-3">
-              <span class="badge bg-dark me-1 mb-2 p-2">Microcontroller (STM32)</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">AutoCAD</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">SolidWorks</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">Circuit Wiring</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">3D Printing</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">Rapid Prototyping</span>
             </div>
           </div>
         </div>
@@ -157,6 +197,7 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
   <!-- Resume Section -->
   <section id="resume" class="resume section">
     <div class="container section-title" data-aos="fade-up">
+      <span class="eyebrow">03 · Resume</span>
       <h2>Resume</h2>
       <p>A comprehensive overview of my academic background and professional journey in robotics.</p>
     </div>
@@ -172,8 +213,8 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
             <p><em>Purdue University, West Lafayette, IN</em></p>
             <p><strong>GPA:</strong> 4.0/4.0</p>
             <p>
-              Specializing in ROS2 infrastructure and sensor fusion. My goal is to master the
-              integration of software intelligence with hardware reality.
+              Specializing in ROS2, perception, and sensor fusion, integrating software intelligence with
+              hardware reality.
             </p>
             <p>
               <strong>Key Coursework:</strong> Robotic Systems (ROS2), Industrial Robotics (Sim), Deep
@@ -187,9 +228,9 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
             <p><em>National Taiwan Normal University, Taipei, Taiwan</em></p>
             <p><strong>GPA:</strong> 3.71/4.0</p>
             <p>
-              Driven by the desire to <strong>"build any prototype from scratch,"</strong> I pursued a
-              dual focus in Mechatronics (for mechanical/electrical foundations) and Computer Science
-              (for algorithmic control), enabling me to bridge the gap between hardware and software.
+              Driven by the desire to <strong>"build any prototype from scratch,"</strong> I pursued a dual
+              focus in Mechatronics (mechanical/electrical foundations) and Computer Science (algorithmic
+              control), bridging hardware and software.
             </p>
             <p>
               <strong>Key Coursework:</strong> Automatic Control, Mechanism Design, Data Structures,
@@ -202,18 +243,8 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
             <h5>2024 - 2025</h5>
             <p><em>University of Nevada, Reno, NV</em></p>
             <p>
-              Broadened global perspective and adapted to the US educational system while taking
-              advanced engineering electives.
-            </p>
-          </div>
-
-          <div class="resume-item">
-            <h4><strong>Interdisciplinary Program in Finance</strong></h4>
-            <h5>2020 - 2025</h5>
-            <p><em>National Taiwan Normal University</em></p>
-            <p>
-              Gained insights into economics and financial analysis to understand the market impact of
-              technological developments.
+              Broadened global perspective and adapted to the US educational system while taking advanced
+              engineering electives.
             </p>
           </div>
         </div>
@@ -222,39 +253,29 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
           <h3 class="resume-title">Professional Experience</h3>
 
           <div class="resume-item">
+            <h4><strong>AI & Robotics Intern</strong></h4>
+            <h5>May 2026 - Aug 2026</h5>
+            <p><em>Factory Intelligence</em></p>
+            <ul>
+              <li>Working on <strong>robot imitation learning</strong>: building data and training pipelines for manipulation policies.</li>
+              <li>Bridging perception and control on real robot hardware.</li>
+            </ul>
+          </div>
+
+          <div class="resume-item">
             <h4><strong>Quality Assurance Intern</strong></h4>
             <h5>Feb 2025 - July 2025</h5>
             <p><em>FLUX Inc., Taipei, Taiwan</em></p>
             <ul>
               <li>
-                <strong>Internal Tooling:</strong> Engineered a hybrid automation suite using
-                <strong>Python</strong> and <strong>Bash/Expect</strong> for automated SSH execution,
-                eliminating manual entry errors.
+                Engineered a hybrid <strong>Python</strong> + <strong>Bash/Expect</strong> suite for
+                automated SSH firmware testing, eliminating manual-entry errors.
               </li>
               <li>
-                <strong>Efficiency:</strong> Reduced test setup time by <strong>~95%</strong> (from 100s
-                to &lt;5s) and accelerated firmware regression workflows.
+                Cut test setup time by <strong>~95%</strong> (from 100s to &lt;5s) and accelerated firmware
+                regression workflows.
               </li>
-              <li>
-                <strong>QA Process:</strong> Executed regression test suites and designed new test cases
-                to ensure firmware release quality.
-              </li>
-            </ul>
-          </div>
-
-          <div class="resume-item">
-            <h4><strong>Electronic Control Intern</strong></h4>
-            <h5>Jul 2023 - Aug 2023</h5>
-            <p><em>Skytech Inc., Hsinchu, Taiwan</em></p>
-            <ul>
-              <li>
-                Assembled, wired, and tested electrical control systems, ensuring reliability in
-                semiconductor equipment.
-              </li>
-              <li>
-                Conducted on-site troubleshooting of signal wiring and I/O modules, strengthening
-                system-level debugging skills.
-              </li>
+              <li>Executed regression suites and designed new test cases for firmware release quality.</li>
             </ul>
           </div>
 
@@ -264,24 +285,20 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
             <p><em>National Taiwan Normal University, Taipei, Taiwan</em></p>
             <ul>
               <li>
-                Applied <strong>Taguchi methods</strong> to identify high-impact experimental factors,
-                then designed an end-to-end pipeline for data collection, preprocessing, and
-                <strong>MLP-based prediction</strong>.
+                Applied <strong>Taguchi methods</strong> to identify high-impact factors, then designed an
+                end-to-end pipeline for data collection, preprocessing, and <strong>MLP-based prediction</strong>.
               </li>
               <li>Presented research findings at the <strong>2023 ARIS International Conference</strong>.</li>
             </ul>
           </div>
 
           <div class="resume-item">
-            <h4><strong>Teaching Assistant</strong></h4>
-            <h5>Feb 2023 - Jun 2023</h5>
-            <p><em>National Taiwan Normal University, Taipei, Taiwan</em></p>
+            <h4><strong>Electronic Control Intern</strong></h4>
+            <h5>Jul 2023 - Aug 2023</h5>
+            <p><em>Skytech Inc., Hsinchu, Taiwan</em></p>
             <ul>
-              <li>
-                Taught electronics experiments using <strong>NI ELVIS II</strong> and
-                <strong>LabVIEW</strong> for data acquisition and analysis.
-              </li>
-              <li>Guided students through circuit simulations (Multisim) and hardware debugging sessions.</li>
+              <li>Assembled, wired, and tested electrical control systems for semiconductor equipment.</li>
+              <li>Troubleshot signal wiring and I/O modules on-site, strengthening system-level debugging.</li>
             </ul>
           </div>
         </div>
@@ -292,6 +309,7 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
   <!-- Portfolio Section -->
   <section id="portfolio" class="portfolio section light-background">
     <div class="container section-title" data-aos="fade-up">
+      <span class="eyebrow">04 · Portfolio</span>
       <h2>Portfolio</h2>
     </div>
 
@@ -306,18 +324,78 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
       </div>
     </div>
   </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="contact section">
+    <div class="container section-title" data-aos="fade-up">
+      <span class="eyebrow">05 · Contact</span>
+      <h2>Get in Touch</h2>
+      <p>Open to robotics roles, collaborations, and a good conversation.</p>
+    </div>
+
+    <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <div class="row gy-4">
+        <div class="col-lg-5">
+          <div class="info-wrap">
+            <div class="info-item d-flex align-items-center">
+              <i class="bi bi-envelope flex-shrink-0"></i>
+              <div>
+                <h3>Email</h3>
+                <p><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+              </div>
+            </div>
+            <div class="info-item d-flex align-items-center">
+              <i class="bi bi-geo-alt flex-shrink-0"></i>
+              <div>
+                <h3>Location</h3>
+                <p>{SITE.location}</p>
+              </div>
+            </div>
+            <div class="info-item d-flex align-items-center">
+              <i class="bi bi-linkedin flex-shrink-0"></i>
+              <div>
+                <h3>LinkedIn</h3>
+                <p><a href={SITE.socials.linkedin} target="_blank">in/jyunchihu</a></p>
+              </div>
+            </div>
+            <div class="info-item d-flex align-items-center mb-0">
+              <i class="bi bi-github flex-shrink-0"></i>
+              <div>
+                <h3>GitHub</h3>
+                <p><a href={SITE.socials.github} target="_blank">github.com/Vict0rHu</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="contact-cta">
+            <h3>Let's build something.</h3>
+            <p>
+              Whether it's a robotics role, a research collaboration, or a question about one of my
+              projects, my inbox is open and I reply quickly.
+            </p>
+            <div class="hero-cta">
+              <a class="btn-hero primary" href={`mailto:${SITE.email}`}><i class="bi bi-envelope"></i> Email me</a>
+              <a class="btn-hero ghost" href={SITE.socials.linkedin} target="_blank"
+                ><i class="bi bi-linkedin"></i> Connect on LinkedIn</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
 
 <script>
-  // Lightweight category filter (replaces the old Isotope dependency).
+  // --- Portfolio category filter (replaces Isotope) ---
   const filterBtns = document.querySelectorAll<HTMLElement>('.portfolio-filters li');
   const items = document.querySelectorAll<HTMLElement>('.portfolio-container .portfolio-item');
-
   filterBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelector('.portfolio-filters .filter-active')?.classList.remove('filter-active');
       btn.classList.add('filter-active');
-
       const filter = btn.dataset.filter ?? '*';
       const cls = filter.replace('.', '');
       items.forEach((item) => {
@@ -326,4 +404,119 @@ const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
       });
     });
   });
+
+  // --- Hero typing effect ---
+  const typedEl = document.querySelector<HTMLElement>('.typed');
+  if (typedEl) {
+    const roles: string[] = JSON.parse(typedEl.dataset.roles || '[]');
+    let i = 0;
+    let j = 0;
+    let deleting = false;
+    const tick = () => {
+      const word = roles[i % roles.length];
+      typedEl.textContent = word.slice(0, j);
+      if (!deleting && j < word.length) {
+        j++;
+        setTimeout(tick, 80);
+      } else if (deleting && j > 0) {
+        j--;
+        setTimeout(tick, 40);
+      } else if (!deleting) {
+        deleting = true;
+        setTimeout(tick, 1500);
+      } else {
+        deleting = false;
+        i++;
+        setTimeout(tick, 250);
+      }
+    };
+    tick();
+  }
+
+  // --- Hero node-graph animation (ROS-graph / sensor-fusion motif) ---
+  const canvas = document.querySelector<HTMLCanvasElement>('.node-graph');
+  if (canvas) {
+    const ctx = canvas.getContext('2d')!;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const accent =
+      getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim() || '#149ddd';
+    const COUNT = 16;
+    const LINK_DIST = 130;
+    let w = 0;
+    let h = 0;
+    let nodes: { x: number; y: number; vx: number; vy: number; r: number }[] = [];
+    let raf = 0;
+    let running = false;
+
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      w = canvas.clientWidth;
+      h = canvas.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    const init = () => {
+      nodes = Array.from({ length: COUNT }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: reduce ? 0 : (Math.random() - 0.5) * 0.4,
+        vy: reduce ? 0 : (Math.random() - 0.5) * 0.4,
+        r: Math.random() * 2 + 1.5,
+      }));
+    };
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i];
+          const b = nodes[j];
+          const d = Math.hypot(a.x - b.x, a.y - b.y);
+          if (d < LINK_DIST) {
+            ctx.strokeStyle = accent;
+            ctx.globalAlpha = (1 - d / LINK_DIST) * 0.35;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = accent;
+      for (const n of nodes) {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0 || n.x > w) n.vx *= -1;
+        if (n.y < 0 || n.y > h) n.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      if (!reduce) raf = requestAnimationFrame(draw);
+    };
+    const start = () => {
+      if (running || reduce) return;
+      running = true;
+      draw();
+    };
+    const stop = () => {
+      running = false;
+      cancelAnimationFrame(raf);
+    };
+
+    resize();
+    init();
+    draw(); // paint one frame immediately (and the only frame when reduced-motion)
+    window.addEventListener('resize', () => {
+      resize();
+      init();
+      if (reduce) draw();
+    });
+    new IntersectionObserver((entries) => {
+      entries.forEach((e) => (e.isIntersecting ? start() : stop()));
+    }).observe(canvas);
+  }
 </script>

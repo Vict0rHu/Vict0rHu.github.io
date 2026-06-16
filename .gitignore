@@ -5,6 +5,13 @@ dist/
 .env
 .env.production
 
+# Local collaboration / AI assistant artifacts (never deploy or publish)
+docs/
+.claude/
+CLAUDE.md
+*.local.md
+.plan.md
+
 # macOS
 .DS_Store
 **/.DS_Store

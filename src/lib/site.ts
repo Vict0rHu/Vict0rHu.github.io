@@ -3,10 +3,15 @@
 export const SITE = {
   name: 'Victor Hu',
   title: "Victor Hu's Portfolio",
-  tagline: 'Robotics Engineer | Infrastructure Builder | Problem Solver',
+  tagline: 'Robotics · Mechatronics · Embedded Systems',
   description:
-    'Victor Hu — Robotics software & infrastructure engineer. M.S. Robotics at Purdue. Projects in ROS2, simulation, internal tooling, and computer vision.',
+    'Victor Hu, robotics engineer focused on perception and control. M.S. Robotics at Purdue; AI & Robotics Intern at Factory Intelligence. Work spans imitation learning, tactile–visual sensor fusion, ROS2, simulation, and embedded systems.',
   email: 'hu1148@purdue.edu',
+  location: 'West Lafayette, IN',
+  currentRole: 'AI & Robotics Intern @ Factory Intelligence',
+  // Drop a PDF in public/assets/ and set its path here to show the
+  // "Download Résumé" button (left empty = button hidden).
+  resume: '',
   socials: {
     instagram: 'https://www.instagram.com/_victor0301/',
     github: 'https://github.com/Vict0rHu',
