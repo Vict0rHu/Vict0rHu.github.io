@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
-import { SITE, withBase } from '../lib/site';
+import { SITE, NEWS, withBase } from '../lib/site';
 
 const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
   (a, b) => a.data.order - b.data.order
@@ -49,6 +49,36 @@ const typedRoles = [
           <canvas class="node-graph" aria-hidden="true"></canvas>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- News Section -->
+  <section id="news" class="news section">
+    <div class="container section-title" data-aos="fade-up">
+      <span class="eyebrow">News</span>
+      <h2>Latest</h2>
+    </div>
+
+    <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <ul class="news-list">
+        {
+          NEWS.map((item) => (
+            <li class="news-item">
+              <span class="news-date">{item.date}</span>
+              <span class="news-text">
+                {item.url ? (
+                  <a href={item.url.startsWith('http') ? item.url : withBase(item.url)}>
+                    {item.text}
+                    <i class="bi bi-arrow-right-short" aria-hidden="true" />
+                  </a>
+                ) : (
+                  item.text
+                )}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </section>
 

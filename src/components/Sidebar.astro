@@ -28,6 +28,7 @@ const link = (hash: string) => (home ? hash : withBase('/') + hash);
   <nav id="navmenu" class="navmenu">
     <ul>
       <li><a href={link('#hero')} class={home ? 'active' : ''}><i class="bi bi-house navicon"></i> Home</a></li>
+      <li><a href={link('#news')}><i class="bi bi-newspaper navicon"></i> News</a></li>
       <li><a href={link('#about')}><i class="bi bi-person navicon"></i> About</a></li>
       <li><a href={link('#resume')}><i class="bi bi-file-earmark-text navicon"></i> Resume</a></li>
       <li><a href={link('#portfolio')}><i class="bi bi-images navicon"></i> Portfolio</a></li>

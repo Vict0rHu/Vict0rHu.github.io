@@ -21,6 +21,32 @@ export const SITE = {
 };
 
 /**
+ * Recent news / milestones, newest first. `url` is optional and may be an
+ * internal path (e.g. "/portfolio/...") or a full external URL. To add an
+ * update, prepend one line here.
+ */
+export const NEWS: { date: string; text: string; url?: string }[] = [
+  {
+    date: 'Jun 2026',
+    text: 'CONTACT accepted to IEEE/RSJ IROS 2026',
+    url: '/portfolio/visuotactile-diffusion-policy/',
+  },
+  {
+    date: 'May 2026',
+    text: 'Joined Factory Intelligence as an AI & Robotics Intern',
+  },
+  {
+    date: 'Apr 2026',
+    text: '2nd place (Microsoft Track) and 3rd (Best Use of AMD) at StarkHacks 2026',
+    url: '/portfolio/starkhacks-2026/',
+  },
+  {
+    date: 'Aug 2025',
+    text: 'Began M.S. in Robotics at Purdue University',
+  },
+];
+
+/**
  * Prefix a path with the configured `base` so links/assets work whether the
  * site is served from '/' (user page) or '/sub/' (project page).
  */
