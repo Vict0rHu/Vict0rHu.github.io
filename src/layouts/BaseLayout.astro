@@ -18,6 +18,11 @@ const ogImageUrl = new URL(withBase(ogImage), Astro.site);
 // Load Google Analytics only in production builds, and only if an ID is set.
 const gaId = SITE.gaMeasurementId;
 const enableAnalytics = Boolean(gaId) && import.meta.env.PROD;
+// Exact standard gtag.js snippet (global `gtag`), rendered verbatim via set:html.
+const gaInlineScript = `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${gaId}');`;
 ---
 
 <!doctype html>
@@ -30,14 +35,7 @@ const enableAnalytics = Boolean(gaId) && import.meta.env.PROD;
       enableAnalytics && (
         <Fragment>
           <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
-          <script define:vars={{ gaId }}>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() {
-              dataLayer.push(arguments);
-            }
-            gtag('js', new Date());
-            gtag('config', gaId);
-          </script>
+          <script is:inline set:html={gaInlineScript} />
         </Fragment>
       )
     }
