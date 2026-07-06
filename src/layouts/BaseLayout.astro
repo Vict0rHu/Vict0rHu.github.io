@@ -14,6 +14,10 @@ const {
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImageUrl = new URL(withBase(ogImage), Astro.site);
+
+// Load Google Analytics only in production builds, and only if an ID is set.
+const gaId = SITE.gaMeasurementId;
+const enableAnalytics = Boolean(gaId) && import.meta.env.PROD;
 ---
 
 <!doctype html>
@@ -21,6 +25,23 @@ const ogImageUrl = new URL(withBase(ogImage), Astro.site);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    {
+      enableAnalytics && (
+        <Fragment>
+          <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
+          <script define:vars={{ gaId }}>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+              dataLayer.push(arguments);
+            }
+            gtag('js', new Date());
+            gtag('config', gaId);
+          </script>
+        </Fragment>
+      )
+    }
+
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />

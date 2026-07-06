@@ -18,6 +18,10 @@ export const SITE = {
     linkedin: 'https://www.linkedin.com/in/jyunchihu/',
   },
   defaultOgImage: '/assets/img/my-profile-img.jpg',
+  // Google Analytics 4 Measurement ID, looks like "G-XXXXXXXXXX".
+  // Get it from analytics.google.com → Admin → Data Streams → your web stream.
+  // Leave empty to disable. Only loads in production builds (dev visits ignored).
+  gaMeasurementId: 'G-XFJMCF5LXW',
 };
 
 /**
