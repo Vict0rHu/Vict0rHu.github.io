@@ -2,11 +2,15 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
-import { SITE, NEWS, withBase } from '../lib/site';
+import { SITE, NEWS, PERSON_LD, withBase } from '../lib/site';
 
 const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
   (a, b) => a.data.order - b.data.order
 );
+
+// Person structured data for the homepage. `alternateName` + LinkedIn `sameAs`
+// associate the legal name with this site without any visible on-page text.
+const personLd = { '@context': 'https://schema.org', ...PERSON_LD };
 
 const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
 
@@ -19,7 +23,7 @@ const typedRoles = [
 ];
 ---
 
-<BaseLayout home={true} bodyClass="index-page">
+<BaseLayout home={true} bodyClass="index-page" jsonLd={personLd}>
   <!-- Hero Section -->
   <section id="hero" class="hero-intro">
     <div class="container" data-aos="fade-up">
@@ -93,7 +97,7 @@ const typedRoles = [
     <div class="container" data-aos="fade-up" data-aos-delay="100">
       <div class="row gy-4 justify-content-center">
         <div class="col-lg-4">
-          <img src="/assets/img/my-profile-img.jpg" class="img-fluid" alt="Victor Hu Profile" />
+          <img src={withBase('/assets/img/my-profile-img.jpg')} class="img-fluid" alt="Victor Hu, robotics engineer" />
         </div>
         <div class="col-lg-8 content">
           <h2>From Mechanical Roots to Robotic Intelligence</h2>
@@ -108,32 +112,32 @@ const typedRoles = [
             <div class="col-lg-6">
               <ul>
                 <li>
-                  <i class="bi bi-chevron-right"></i> <strong>Website:</strong>
-                  <span><a href="https://vict0rhu.github.io" target="_blank">vict0rhu.github.io</a></span>
+                  <i class="bi bi-chevron-right"></i> <strong>Degree:</strong>
+                  <span>M.S. in Robotics (Purdue)</span>
                 </li>
                 <li>
                   <i class="bi bi-chevron-right"></i> <strong>Focus:</strong>
                   <span>Robotics, Perception, Control</span>
                 </li>
                 <li>
-                  <i class="bi bi-chevron-right"></i> <strong>GitHub:</strong>
-                  <span><a href={SITE.socials.github} target="_blank">github.com/Vict0rHu</a></span>
+                  <i class="bi bi-chevron-right"></i> <strong>Location:</strong>
+                  <span>{SITE.location}</span>
                 </li>
               </ul>
             </div>
             <div class="col-lg-6">
               <ul>
                 <li>
-                  <i class="bi bi-chevron-right"></i> <strong>Degree:</strong>
-                  <span>M.S. in Robotics (Purdue)</span>
-                </li>
-                <li>
                   <i class="bi bi-chevron-right"></i> <strong>Email:</strong>
                   <span><a href={`mailto:${SITE.email}`}>{SITE.email}</a></span>
                 </li>
                 <li>
                   <i class="bi bi-chevron-right"></i> <strong>LinkedIn:</strong>
-                  <span><a href={SITE.socials.linkedin} target="_blank">in/jyunchihu</a></span>
+                  <span><a href={SITE.socials.linkedin} target="_blank" rel="noopener">in/jyunchihu</a></span>
+                </li>
+                <li>
+                  <i class="bi bi-chevron-right"></i> <strong>GitHub:</strong>
+                  <span><a href={SITE.socials.github} target="_blank" rel="noopener">github.com/Vict0rHu</a></span>
                 </li>
               </ul>
             </div>
@@ -166,28 +170,29 @@ const typedRoles = [
       <div class="row">
         <div class="col-lg-6 col-md-6 d-flex align-items-stretch mb-4">
           <div class="icon-box w-100">
-            <h4><i class="bi bi-robot"></i> Robotics & Simulation</h4>
-            <div class="mt-3">
-              <span class="badge bg-dark me-1 mb-2 p-2">ROS2 (Nodes/Topics)</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">URDF/Xacro</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">RViz/Gazebo</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">Kinematics (FK/IK)</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">CoppeliaSim</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">Hardware Integration</span>
+            <h4><i class="bi bi-eye"></i> AI & Computer Vision</h4>
+            <div class="skill-chips mt-3">
+              <span class="skill-chip">Imitation Learning</span>
+              <span class="skill-chip">Diffusion Policy</span>
+              <span class="skill-chip">Sensor Fusion</span>
+              <span class="skill-chip">PyTorch</span>
+              <span class="skill-chip">TensorFlow</span>
+              <span class="skill-chip">OpenCV</span>
+              <span class="skill-chip">Edge Inference</span>
             </div>
           </div>
         </div>
 
         <div class="col-lg-6 col-md-6 d-flex align-items-stretch mb-4">
           <div class="icon-box w-100">
-            <h4><i class="bi bi-eye"></i> AI & Computer Vision</h4>
-            <div class="mt-3">
-              <span class="badge bg-secondary me-1 mb-2 p-2">Imitation Learning</span>
-              <span class="badge bg-secondary me-1 mb-2 p-2">Diffusion Policy</span>
-              <span class="badge bg-secondary me-1 mb-2 p-2">Sensor Fusion</span>
-              <span class="badge bg-secondary me-1 mb-2 p-2">TensorFlow</span>
-              <span class="badge bg-secondary me-1 mb-2 p-2">OpenCV</span>
-              <span class="badge bg-secondary me-1 mb-2 p-2">Edge Inference</span>
+            <h4><i class="bi bi-robot"></i> Robotics & Simulation</h4>
+            <div class="skill-chips mt-3">
+              <span class="skill-chip">ROS2 (Nodes/Topics)</span>
+              <span class="skill-chip">URDF/Xacro</span>
+              <span class="skill-chip">RViz/Gazebo</span>
+              <span class="skill-chip">Kinematics (FK/IK)</span>
+              <span class="skill-chip">CoppeliaSim</span>
+              <span class="skill-chip">Hardware Integration</span>
             </div>
           </div>
         </div>
@@ -195,13 +200,13 @@ const typedRoles = [
         <div class="col-lg-6 col-md-6 d-flex align-items-stretch mb-4">
           <div class="icon-box w-100">
             <h4><i class="bi bi-cpu"></i> Embedded & Mechatronics</h4>
-            <div class="mt-3">
-              <span class="badge bg-dark me-1 mb-2 p-2">Microcontroller (STM32)</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">Circuit Wiring</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">SolidWorks</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">AutoCAD</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">3D Printing</span>
-              <span class="badge bg-dark me-1 mb-2 p-2">Rapid Prototyping</span>
+            <div class="skill-chips mt-3">
+              <span class="skill-chip">Microcontroller (STM32)</span>
+              <span class="skill-chip">Circuit Wiring</span>
+              <span class="skill-chip">SolidWorks</span>
+              <span class="skill-chip">AutoCAD</span>
+              <span class="skill-chip">3D Printing</span>
+              <span class="skill-chip">Rapid Prototyping</span>
             </div>
           </div>
         </div>
@@ -209,14 +214,14 @@ const typedRoles = [
         <div class="col-lg-6 col-md-6 d-flex align-items-stretch mb-4">
           <div class="icon-box w-100">
             <h4><i class="bi bi-code-slash"></i> Languages & Tools</h4>
-            <div class="mt-3">
-              <span class="badge bg-primary me-1 mb-2 p-2">Python</span>
-              <span class="badge bg-primary me-1 mb-2 p-2">C / Embedded C</span>
-              <span class="badge bg-primary me-1 mb-2 p-2">Bash/Expect</span>
-              <span class="badge bg-primary me-1 mb-2 p-2">MATLAB</span>
-              <span class="badge bg-primary me-1 mb-2 p-2">SQL</span>
-              <span class="badge bg-primary me-1 mb-2 p-2">Git/GitHub</span>
-              <span class="badge bg-primary me-1 mb-2 p-2">Linux/SSH</span>
+            <div class="skill-chips mt-3">
+              <span class="skill-chip">Python</span>
+              <span class="skill-chip">C / Embedded C</span>
+              <span class="skill-chip">Bash/Expect</span>
+              <span class="skill-chip">MATLAB</span>
+              <span class="skill-chip">SQL</span>
+              <span class="skill-chip">Git/GitHub</span>
+              <span class="skill-chip">Linux/SSH</span>
             </div>
           </div>
         </div>
@@ -345,8 +350,8 @@ const typedRoles = [
 
     <div class="container">
       <ul class="portfolio-filters" data-aos="fade-up" data-aos-delay="100">
-        <li data-filter="*" class="filter-active">All</li>
-        {filters.map((f) => <li data-filter={`.filter-${f.toLowerCase()}`}>{f}</li>)}
+        <li><button type="button" data-filter="*" class="filter-active">All</button></li>
+        {filters.map((f) => <li><button type="button" data-filter={`.filter-${f.toLowerCase()}`}>{f}</button></li>)}
       </ul>
 
       <div class="row gy-4 portfolio-container" data-aos="fade-up" data-aos-delay="200">
@@ -420,7 +425,7 @@ const typedRoles = [
 
 <script>
   // --- Portfolio category filter (replaces Isotope) ---
-  const filterBtns = document.querySelectorAll<HTMLElement>('.portfolio-filters li');
+  const filterBtns = document.querySelectorAll<HTMLElement>('.portfolio-filters button');
   const items = document.querySelectorAll<HTMLElement>('.portfolio-container .portfolio-item');
   filterBtns.forEach((btn) => {
     btn.addEventListener('click', () => {

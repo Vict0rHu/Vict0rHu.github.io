@@ -2,7 +2,7 @@
 
 export const SITE = {
   name: 'Victor Hu',
-  title: "Victor Hu's Portfolio",
+  title: 'Victor Hu — Robotics Engineer',
   tagline: 'Robotics · Mechatronics · Embedded Systems',
   description:
     'Victor Hu, robotics engineer focused on perception and control. M.S. Robotics at Purdue; AI & Robotics Intern at Factory Intelligence. Work spans imitation learning, tactile–visual sensor fusion, ROS2, simulation, and embedded systems.',
@@ -17,11 +17,38 @@ export const SITE = {
     github: 'https://github.com/Vict0rHu',
     linkedin: 'https://www.linkedin.com/in/jyunchihu/',
   },
-  defaultOgImage: '/assets/img/my-profile-img.jpg',
+  defaultOgImage: '/assets/img/og-cover.jpg',
   // Google Analytics 4 Measurement ID, looks like "G-XXXXXXXXXX".
   // Get it from analytics.google.com → Admin → Data Streams → your web stream.
   // Leave empty to disable. Only loads in production builds (dev visits ignored).
   gaMeasurementId: 'G-XFJMCF5LXW',
+};
+
+/**
+ * Machine-readable identity for JSON-LD structured data. The `alternateName`
+ * plus the LinkedIn `sameAs` are what let search engines associate the legal
+ * name "Jyun-Chi Hu" with this site, without that name appearing in any visible
+ * page text. Reused as the `author` on every project page.
+ */
+export const PERSON_LD = {
+  '@type': 'Person',
+  name: 'Victor Hu',
+  alternateName: 'Jyun-Chi Hu',
+  jobTitle: 'Robotics Engineer',
+  email: SITE.email,
+  url: 'https://vict0rhu.github.io/',
+  image: 'https://vict0rhu.github.io/assets/img/my-profile-img.jpg',
+  affiliation: { '@type': 'CollegeOrUniversity', name: 'Purdue University' },
+  knowsAbout: [
+    'Robotics',
+    'Imitation Learning',
+    'ROS2',
+    'Computer Vision',
+    'Sensor Fusion',
+    'Embedded Systems',
+    'Mechatronics',
+  ],
+  sameAs: [SITE.socials.linkedin, SITE.socials.github],
 };
 
 /**

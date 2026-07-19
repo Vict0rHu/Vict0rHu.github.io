@@ -14,7 +14,7 @@
 :root {
   --default-font: "Roboto",  system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --heading-font: "Raleway",  sans-serif;
-  --nav-font: "Poppins",  sans-serif;
+  --nav-font: "Raleway",  sans-serif;
 }
 
 /* Global Colors - The following color variables are used throughout the website. Updating them here will change the color scheme of the entire website */
@@ -174,7 +174,7 @@ h6 {
   margin-right: 8px;
 }
 
-.header .logo h1 {
+.header .logo .sitename {
   font-size: 24px;
   margin: 0;
   font-weight: 700;
@@ -232,6 +232,8 @@ h6 {
   justify-content: center;
   width: 40px;
   height: 40px;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
   cursor: pointer;
   position: fixed;
@@ -393,41 +395,6 @@ h6 {
 .footer .credits a:hover {
   color: #777;
   text-decoration: underline;
-}
-
-/*--------------------------------------------------------------
-# Preloader
---------------------------------------------------------------*/
-#preloader {
-  position: fixed;
-  inset: 0;
-  z-index: 999999;
-  overflow: hidden;
-  background: var(--background-color);
-  transition: all 0.6s ease-out;
-}
-
-#preloader:before {
-  content: "";
-  position: fixed;
-  top: calc(50% - 30px);
-  left: calc(50% - 30px);
-  border: 6px solid #ffffff;
-  border-color: var(--accent-color) transparent var(--accent-color) transparent;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  animation: animate-preloader 1.5s linear infinite;
-}
-
-@keyframes animate-preloader {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 /*--------------------------------------------------------------
@@ -723,10 +690,10 @@ section,
   margin-right: 8px;
 }
 
-.skills .icon-box .badge {
-  font-weight: 500;
-  font-size: 13px;
-  letter-spacing: 0.2px;
+.skills .icon-box .skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .skills .progress {
@@ -833,21 +800,33 @@ section,
 }
 
 .portfolio .portfolio-filters li {
-  cursor: pointer;
   display: inline-block;
+  margin: 0 10px 10px;
+}
+
+.portfolio .portfolio-filters button {
+  cursor: pointer;
   padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 400;
-  margin: 0 10px;
   line-height: 1;
   text-transform: uppercase;
-  margin-bottom: 10px;
   transition: all 0.3s ease-in-out;
 }
 
-.portfolio .portfolio-filters li:hover,
-.portfolio .portfolio-filters li.filter-active {
+.portfolio .portfolio-filters button:hover,
+.portfolio .portfolio-filters button.filter-active {
   color: var(--accent-color);
+}
+
+.portfolio .portfolio-filters button:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 4px;
+  border-radius: 2px;
 }
 
 .portfolio .portfolio-filters li:first-child {
@@ -860,8 +839,7 @@ section,
 
 @media (max-width: 575px) {
   .portfolio .portfolio-filters li {
-    font-size: 14px;
-    margin: 0 5px;
+    margin: 0 5px 10px;
   }
 }
 
@@ -1364,7 +1342,8 @@ section,
   gap: 8px;
 }
 
-.portfolio-details .tech-chip {
+.portfolio-details .tech-chip,
+.skill-chip {
   display: inline-block;
   padding: 5px 12px;
   font-size: 13px;

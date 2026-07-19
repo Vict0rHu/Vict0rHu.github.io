@@ -10,6 +10,7 @@ const {
   ogType = 'website',
   bodyClass = '',
   home = false,
+  jsonLd = null,
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
@@ -42,6 +43,7 @@ gtag('config', '${gaId}');`;
 
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="author" content="Victor Hu" />
     <link rel="canonical" href={canonical} />
 
     <!-- Open Graph / Twitter -->
@@ -63,7 +65,7 @@ gtag('config', '${gaId}');`;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Poppins:wght@400;500;600&family=Raleway:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Raleway:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
 
@@ -76,6 +78,9 @@ gtag('config', '${gaId}');`;
 
     <!-- Main CSS -->
     <link href={withBase('/assets/css/main.css')} rel="stylesheet" />
+
+    <!-- Structured data (JSON-LD) -->
+    {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
   </head>
 
   <body class={bodyClass}>
@@ -91,9 +96,6 @@ gtag('config', '${gaId}');`;
     <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"
       ><i class="bi bi-arrow-up-short"></i></a
     >
-
-    <!-- Preloader -->
-    <div id="preloader"></div>
 
     <!-- Vendor JS -->
     <script is:inline src={withBase('/assets/vendor/aos/aos.js')}></script>

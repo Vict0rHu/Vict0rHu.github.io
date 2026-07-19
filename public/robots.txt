@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vict0rhu.github.io/sitemap-index.xml

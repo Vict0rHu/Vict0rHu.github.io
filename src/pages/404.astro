@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/site';
+---
+
+<BaseLayout
+  title="Page not found · Victor Hu"
+  description="The page you were looking for does not exist or may have moved."
+>
+  <section class="section" style="min-height: 72vh; display: flex; align-items: center;">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up" style="margin-bottom: 24px;">
+        <span class="eyebrow">Error 404</span>
+        <h1>Page not found</h1>
+        <p>The page you were looking for does not exist or may have moved.</p>
+      </div>
+      <div class="text-center" data-aos="fade-up" data-aos-delay="100">
+        <div class="hero-cta" style="justify-content: center;">
+          <a class="btn-hero primary" href={withBase('/')}><i class="bi bi-house"></i> Back to home</a>
+          <a class="btn-hero ghost" href={withBase('/#portfolio')}>View portfolio</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

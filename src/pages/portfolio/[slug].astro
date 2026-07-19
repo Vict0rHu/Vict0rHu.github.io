@@ -1,7 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { withBase } from '../../lib/site';
+import { PERSON_LD, withBase } from '../../lib/site';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects', ({ data }) => !data.draft);
@@ -22,6 +22,20 @@ const media =
 const isMp4 = (src: string) => /\.mp4($|\?)/i.test(src);
 const ogImage = media.find((m) => m.type === 'image')?.src ?? d.thumbnail;
 
+// CreativeWork structured data for this project, authored by the shared Person.
+const projectLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: d.title,
+  headline: d.title,
+  description: d.description,
+  image: new URL(withBase(ogImage), Astro.site).href,
+  url: new URL(withBase(`/portfolio/${project.id}/`), Astro.site).href,
+  author: PERSON_LD,
+  ...(d.category ? { genre: d.category } : {}),
+  ...(d.tech.length > 0 ? { keywords: d.tech.join(', ') } : {}),
+};
+
 const swiperConfig = {
   loop: media.length > 1,
   speed: 600,
@@ -37,6 +51,7 @@ const swiperConfig = {
   ogImage={ogImage}
   ogType="article"
   bodyClass="portfolio-details-page"
+  jsonLd={projectLd}
 >
   <!-- Page Title -->
   <div class="page-title dark-background">
@@ -66,7 +81,7 @@ const swiperConfig = {
                   m.type === 'video' ? (
                     <div class="swiper-slide">
                       {isMp4(m.src) ? (
-                        <video controls src={withBase(m.src)} class="w-100" />
+                        <video controls preload="metadata" src={withBase(m.src)} class="w-100" />
                       ) : (
                         <div class="ratio ratio-16x9">
                           <iframe src={m.src} title={m.alt ?? d.title} allowfullscreen loading="lazy" />

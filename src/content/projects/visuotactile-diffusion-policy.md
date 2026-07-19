@@ -5,7 +5,7 @@ category: "Robot Learning · Manipulation"
 date: "2026"
 role: "Graduate Researcher · Purdue"
 order: 1
-thumbnail: "/assets/img/portfolio/visuotactile-diffusion-policy/cover.png"
+thumbnail: "/assets/img/portfolio/visuotactile-diffusion-policy/cover.jpg"
 description: "Tactile-enhanced imitation learning for contact-rich robotic disassembly. Accepted to IROS 2026."
 tech: ["Diffusion Policy", "Imitation Learning", "GelSight Tactile", "PyTorch", "ROS", "Sensor Fusion"]
 links:
@@ -19,7 +19,7 @@ highlights:
   - "Trained and deployed custom policies on a physical robot for contact-rich tasks"
   - "Measurable success-rate gains over a vision-only baseline"
 media:
-  - { type: "image", src: "/assets/img/portfolio/visuotactile-diffusion-policy/cover.png", alt: "CONTACT visuotactile learning pipeline" }
+  - { type: "image", src: "/assets/img/portfolio/visuotactile-diffusion-policy/cover.jpg", alt: "CONTACT visuotactile learning pipeline" }
 ---
 
 **CONTACT** (*CONtact-aware TACTile learning for robotic disassembly*) asks a

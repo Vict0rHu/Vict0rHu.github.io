@@ -5,7 +5,7 @@ category: "Teleoperation · VR · Robot Arm"
 date: "2025"
 role: "Developer · Teleoperation Pipeline"
 order: 2
-thumbnail: "/assets/img/portfolio/fpv-ptz-teleoperation/cover.png"
+thumbnail: "/assets/img/portfolio/fpv-ptz-teleoperation/cover.jpg"
 description: "Immersive first-person teleoperation of a Franka arm and PTZ camera via Meta Quest 3."
 tech: ["Meta Quest 3", "Franka Emika Panda", "PTZ Camera", "Teleoperation", "Low-Latency Control", "Safety Workspace"]
 highlights:
@@ -14,7 +14,7 @@ highlights:
   - "Teleoperated a Franka Emika Panda arm with the headset for intuitive control"
   - "Defined workspace safety bounds to keep teleoperation within safe limits"
 media:
-  - { type: "image", src: "/assets/img/portfolio/fpv-ptz-teleoperation/cover.png", alt: "VR teleoperation system overview" }
+  - { type: "image", src: "/assets/img/portfolio/fpv-ptz-teleoperation/cover.jpg", alt: "VR teleoperation system overview" }
   - { type: "image", src: "/assets/img/portfolio/fpv-ptz-teleoperation/01.jpg", alt: "Franka arm with FPV PTZ camera teleoperation rig" }
   - { type: "video", src: "/assets/img/portfolio/fpv-ptz-teleoperation/demo.mp4", alt: "Teleoperation demo" }
 ---
