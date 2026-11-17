@@ -10,7 +10,6 @@ description: "Tactile-enhanced imitation learning for contact-rich robotic disas
 tech: ["Diffusion Policy", "Imitation Learning", "GelSight Tactile", "PyTorch", "ROS", "Sensor Fusion"]
 links:
   - label: "Project Site"
-    icon: "bi-box-arrow-up-right"
     url: "https://vict0rhu.github.io/CONTACT-Website/"
 highlights:
   - "Accepted to IEEE/RSJ IROS 2026"

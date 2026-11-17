@@ -1,0 +1,132 @@
+---
+import { getEntry } from 'astro:content';
+import { SITE, withBase } from '../lib/site';
+import { CONTACT_ID, awardProjects, memoryScenes, objects, posterProjects, travelDestinations } from '../lab/content';
+import '../lab/lab.css';
+
+const posters = await Promise.all(Object.entries(posterProjects).map(async ([id, slug]) => {
+  const { data } = await getEntry('projects', slug);
+  return { id, slug, title: data.title, image: withBase(data.thumbnail) };
+}));
+const awards = await Promise.all(awardProjects.map(async (slug) => {
+  const { data } = await getEntry('projects', slug);
+  return { slug, title: data.title };
+}));
+const projectUrl = withBase(`/portfolio/${CONTACT_ID}/`);
+const home = withBase('/');
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Explore Victor Hu’s workbench and robotics memories as a small visiting robot." />
+    <title>Robotics Lab — Victor Hu</title>
+  </head>
+  <body>
+    <main class="lab-shell" id="lab">
+      <header class="lab-header">
+        <a id="lab-home" class="lab-home" href={home}><span aria-hidden="true">←</span> Victor Hu</a>
+        <button id="lab-scene-exit" class="lab-inspection-close" type="button" aria-label="Return to Victor’s room" aria-keyshortcuts="Escape" hidden>ESC</button>
+        <nav aria-label="Portfolio links">
+          <a href={`${home}#portfolio`}>Projects</a>
+          <a href={SITE.resume ? withBase(SITE.resume) : `${home}#resume`}>Résumé</a>
+        </nav>
+      </header>
+      <section class="lab-heading" aria-labelledby="scene-title">
+        <div>
+          <p class="lab-eyebrow" id="lab-scene-label">Victor’s Robotics Lab</p>
+          <h1 id="scene-title">Victor’s room</h1>
+        </div>
+        <p class="lab-clock" id="lab-clock" hidden><span class="clock-dot"></span><span id="lab-time"></span> <span class="clock-zone">Denver</span></p>
+      </section>
+      <section class="lab-stage" aria-label="Scene">
+        <div id="lab-world" class="lab-world" hidden>
+          <canvas id="lab-canvas" aria-label="3D room" tabindex="0"></canvas>
+          <div id="lab-markers" class="lab-markers"></div>
+          <div id="lab-portal-guide" class="lab-portal-guide" role="img" aria-label="Direction to the travel circle" hidden>
+            <span aria-hidden="true">➜</span>
+          </div>
+          <p id="lab-thought" class="lab-thought" role="status" hidden></p>
+        </div>
+        <div id="lab-unavailable" class="lab-unavailable" role="status" hidden>
+          <p>3D is unavailable in this browser.</p>
+          <a class="lab-button" href={projectUrl}>Read the CONTACT case study</a>
+        </div>
+        <noscript><div class="lab-unavailable"><a class="lab-button" href={projectUrl}>Read the CONTACT case study</a></div></noscript>
+        <div id="lab-panel" class="lab-panel" role="region" aria-labelledby="lab-panel-title" hidden>
+          <div class="lab-panel-header">
+            <h2 id="lab-panel-title" tabindex="-1"></h2>
+            <button id="lab-close" class="lab-inspection-close" aria-label="Close inspection" aria-keyshortcuts="Escape Space" type="button">ESC</button>
+          </div>
+          <p id="lab-panel-description" aria-live="polite"></p>
+          <div id="lab-poster" hidden>
+            {posters.map(({ id, slug, title, image }) => (
+              <div data-poster={id} hidden>
+                <img width="640" height="360" data-src={image} alt={title} />
+                <a class="lab-case-study" href={withBase(`/portfolio/${slug}/`)}>Read the project <span aria-hidden="true">↗</span></a>
+              </div>
+            ))}
+          </div>
+          <ul id="lab-awards" class="lab-awards" hidden>
+            {awards.map(({ slug, title }) => <li><a href={withBase(`/portfolio/${slug}/`)}>{title} <span aria-hidden="true">↗</span></a></li>)}
+          </ul>
+          <pre id="lab-terminal" aria-label="Simulated terminal output" hidden></pre>
+          <button id="lab-action" type="button" class="lab-button lab-button-primary" aria-keyshortcuts="Enter" hidden>
+            <span id="lab-action-label"></span><kbd aria-hidden="true">↵</kbd>
+          </button>
+          {Object.entries(memoryScenes).map(([id, memory]) => (
+            <a data-memory-project={id} class="lab-case-study" href={withBase(`/portfolio/${memory.project}/`)} hidden>Read the project <span aria-hidden="true">↗</span></a>
+          ))}
+        </div>
+      </section>
+      <footer class="lab-controls">
+        <div class="lab-move" id="lab-move" hidden>
+          <div class="lab-dpad" id="lab-dpad" role="group" aria-label="Move robot">
+            <button type="button" data-move="up" aria-label="Move up">↑</button>
+            <button type="button" data-move="left" aria-label="Move left">←</button>
+            <button type="button" data-move="down" aria-label="Move down">↓</button>
+            <button type="button" data-move="right" aria-label="Move right">→</button>
+          </div>
+        </div>
+        <div class="lab-controls-actions">
+          <div id="lab-preview" class="lab-preview" hidden>
+            <label for="lab-preview-time">Test time <output id="lab-preview-value" for="lab-preview-time"></output></label>
+            <input id="lab-preview-time" type="range" min="0" max="1439" step="1" />
+            <select id="lab-preview-day" aria-label="Test day">
+              <option value="live">Live Denver</option>
+              <option value="weekday">Weekday</option>
+              <option value="weekend">Weekend</option>
+            </select>
+          </div>
+        </div>
+      </footer>
+      <div id="lab-scene-veil" class="lab-scene-veil" aria-hidden="true" hidden></div>
+      <dialog id="lab-travel" class="lab-travel" aria-labelledby="lab-travel-title">
+        <form method="dialog">
+          <button class="lab-close" aria-label="Close destinations" value="cancel">×</button>
+          <h2 id="lab-travel-title" tabindex="-1">Where to?</h2>
+          <div class="lab-destinations">
+            {travelDestinations.map(({ id, name, detail }) => (
+              <button type="submit" value={id} data-destination={id} class="lab-destination">
+                <span>{name}</span>
+                <small>{detail}</small>
+                <span class="destination-state" aria-hidden="true">→</span>
+              </button>
+            ))}
+          </div>
+        </form>
+      </dialog>
+      <template id="lab-objects">
+        {Object.entries(objects).map(([id, object]) => (
+          <button type="button" class="lab-hotspot" data-object={id}>
+            <span class="hotspot-dot" aria-hidden="true"></span><span class="hotspot-label">{object.label}</span><kbd class="hotspot-enter" aria-hidden="true">↵</kbd>
+          </button>
+        ))}
+      </template>
+    </main>
+    <script>
+      import '../lab/controller';
+    </script>
+  </body>
+</html>

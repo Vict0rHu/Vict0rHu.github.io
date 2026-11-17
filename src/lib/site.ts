@@ -1,55 +1,41 @@
 // Site-wide constants and helpers.
 
+const name = 'Victor Hu';
+const publicationName = 'Jyun-Chi Hu';
+
 export const SITE = {
-  name: 'Victor Hu',
-  title: 'Victor Hu — Robotics Engineer',
-  tagline: 'Robotics · Mechatronics · Embedded Systems',
+  name,
+  publicationName,
+  title: `${name} (${publicationName}) — Robotics Engineer`,
   description:
-    'Victor Hu, robotics engineer focused on perception and control. M.S. Robotics at Purdue; AI & Robotics Intern at Factory Intelligence. Work spans imitation learning, tactile–visual sensor fusion, ROS2, simulation, and embedded systems.',
+    `${name} (${publicationName}), Purdue robotics graduate student and AMD research associate. Projects in tactile robot learning, optical inspection, and teleoperation.`,
   email: 'hu1148@purdue.edu',
-  location: 'West Lafayette, IN',
-  currentRole: 'AI & Robotics Intern @ Factory Intelligence',
-  // Drop a PDF in public/assets/ and set its path here to show the
-  // "Download Résumé" button (left empty = button hidden).
+  // Set the path to a PDF under public/assets/ to link to it from the Résumé navigation.
   resume: '',
   socials: {
-    instagram: 'https://www.instagram.com/_victor0301/',
     github: 'https://github.com/Vict0rHu',
     linkedin: 'https://www.linkedin.com/in/jyunchihu/',
   },
   defaultOgImage: '/assets/img/og-cover.jpg',
-  // Google Analytics 4 Measurement ID, looks like "G-XXXXXXXXXX".
-  // Get it from analytics.google.com → Admin → Data Streams → your web stream.
-  // Leave empty to disable. Only loads in production builds (dev visits ignored).
+  // Leave empty to disable analytics. Runs only in production builds.
   gaMeasurementId: 'G-XFJMCF5LXW',
 };
 
-/**
- * Machine-readable identity for JSON-LD structured data. The `alternateName`
- * plus the LinkedIn `sameAs` are what let search engines associate the legal
- * name "Jyun-Chi Hu" with this site, without that name appearing in any visible
- * page text. Reused as the `author` on every project page.
- */
-export const PERSON_LD = {
-  '@type': 'Person',
-  name: 'Victor Hu',
-  alternateName: 'Jyun-Chi Hu',
-  jobTitle: 'Robotics Engineer',
-  email: SITE.email,
-  url: 'https://vict0rhu.github.io/',
-  image: 'https://vict0rhu.github.io/assets/img/my-profile-img.jpg',
-  affiliation: { '@type': 'CollegeOrUniversity', name: 'Purdue University' },
-  knowsAbout: [
-    'Robotics',
-    'Imitation Learning',
-    'ROS2',
-    'Computer Vision',
-    'Sensor Fusion',
-    'Embedded Systems',
-    'Mechatronics',
-  ],
-  sameAs: [SITE.socials.linkedin, SITE.socials.github],
-};
+export function personStructuredData(site: URL) {
+  const homepage = new URL(withBase('/'), site);
+
+  return {
+    '@type': 'Person',
+    '@id': new URL('#person', homepage).href,
+    name: SITE.publicationName,
+    alternateName: SITE.name,
+    jobTitle: 'Robotics Engineer',
+    url: homepage.href,
+    image: new URL(withBase('/assets/img/my-profile-img.jpg'), site).href,
+    affiliation: { '@type': 'CollegeOrUniversity', name: 'Purdue University' },
+    sameAs: [SITE.socials.linkedin, SITE.socials.github],
+  };
+}
 
 /**
  * Recent news / milestones, newest first. `url` is optional and may be an
@@ -58,9 +44,13 @@ export const PERSON_LD = {
  */
 export const NEWS: { date: string; text: string; url?: string }[] = [
   {
-    date: 'Jun 2026',
-    text: 'CONTACT accepted to IEEE/RSJ IROS 2026',
+    date: '2026',
+    text: 'Presented CONTACT at IROS 2026',
     url: '/portfolio/visuotactile-diffusion-policy/',
+  },
+  {
+    date: 'Aug 2026',
+    text: 'Joined AMD as a Research Associate',
   },
   {
     date: 'May 2026',
@@ -70,10 +60,6 @@ export const NEWS: { date: string; text: string; url?: string }[] = [
     date: 'Apr 2026',
     text: '2nd place (Microsoft Track) and 3rd (Best Use of AMD) at StarkHacks 2026',
     url: '/portfolio/starkhacks-2026/',
-  },
-  {
-    date: 'Aug 2025',
-    text: 'Began M.S. in Robotics at Purdue University',
   },
 ];
 

@@ -1,84 +1,33 @@
-# Victor Hu's Portfolio Website
+# Victor Hu’s Portfolio
 
-Personal portfolio showcasing projects, research, and professional experience.
-Built with **[Astro](https://astro.build/)** — content-driven, statically
-generated, ships almost no JavaScript.
+[Live site](https://vict0rhu.github.io/) for Victor Hu, who publishes research as Jyun-Chi Hu. The site is built with Astro. The interactive Lab uses Three.js.
 
-## 🌐 Website
+## Local development
 
-**[vict0rhu.github.io](https://vict0rhu.github.io)**
-
-## 🧱 Tech stack
-
-- **Astro** (static site generator) + content collections
-- **Bootstrap 5** CSS grid/utilities + Bootstrap Icons
-- **Swiper** (project media slider), **GLightbox** (image zoom), **AOS** (scroll animations)
-- Design based on the BootstrapMade *iPortfolio* template
-
-## 🚀 Local development
-
-```bash
-npm install      # install dependencies
-npm run dev      # start dev server at http://localhost:4321
-npm run build    # build the static site to ./dist
-npm run preview  # preview the production build locally
+```sh
+npm ci
+npm run dev
+npm run build
+npm run preview
 ```
 
-## 📁 Project structure
+Open the URL printed by the dev or preview server. Check the homepage, a project page, and `/lab/` before deploying. Lab playtest controls are available in development and at `/lab/?playtest=1`.
 
-```
-src/
-├── content.config.ts          # Zod schema for projects (validated at build time)
-├── content/projects/*.md       # one markdown file per portfolio project
-├── layouts/BaseLayout.astro    # <head>, SEO/OG, shared sidebar + footer
-├── components/                 # Sidebar, Footer, ProjectCard
-├── lib/site.ts                 # site constants + base-aware URL helper
-└── pages/
-    ├── index.astro             # About / Skills / Resume / Portfolio
-    └── portfolio/[slug].astro  # per-project case-study page (static)
-public/assets/                  # images, vendor CSS/JS, main.css, main.js
-```
+## Content and layout
 
-## ➕ Adding a portfolio project
+- `src/pages/index.astro` contains the homepage, selected work, and the project archive.
+- `src/content/projects/` holds project pages. A Markdown file named `<slug>.md` is served at `/portfolio/<slug>/`. The schema in `src/content.config.ts` validates titles, thumbnails, media, and links.
+- `src/lib/site.ts` holds site identity, profile links, and recent updates. Update the name mapping there if the public byline changes.
+- `src/layouts/BaseLayout.astro` and `src/styles/site.css` contain the portfolio layout and styles.
+- `src/lab/` contains the 3D scenes, controls, and Lab content. Its page is `src/pages/lab.astro`.
+- `public/assets/` contains images and project media. Keep existing project slugs stable so inbound links keep working.
 
-Create a new markdown file in `src/content/projects/`. The filename becomes the
-URL slug (`/portfolio/<filename>/`):
+## Deployment and search
 
-```md
----
-title: "My Project"
-filter: "Projects"            # Projects | Research | Competitions | Coursework
-category: "Robotics · Simulation"
-date: "2025"
-role: "Solo Developer"
-order: 1                       # lower shows first
-thumbnail: "/assets/img/portfolio/my-project.jpg"
-description: "One-line blurb for the grid card."
-tech: ["ROS2", "Python"]
-links:
-  - { label: "GitHub", icon: "bi-github", url: "https://github.com/..." }
-highlights:
-  - "Quantified outcome #1"
-  - "Quantified outcome #2"
-media:
-  - { type: "image", src: "/assets/img/portfolio/my-project.jpg" }
-  - { type: "video", src: "https://www.youtube.com/embed/XXXX" }
----
+GitHub Actions builds and deploys to GitHub Pages on pushes to `main`. The workflow can also be run manually. The production URL is set in `astro.config.mjs`.
 
-Rich markdown narrative goes here — this becomes the project overview.
-```
+The build generates `/sitemap-index.xml`, also referenced in `/robots.txt`. After deploying changes to the homepage identity, use Google Search Console to check the live canonical URL and submit the sitemap if needed.
 
-The schema is validated on build, so an invalid `filter` (or a missing required
-field) fails the build instead of silently breaking the page.
+## Third-party notices
 
-## 🛠 Deployment
-
-GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`, using
-`withastro/action`). Pushing to `main` builds and deploys automatically.
-The site is served from the user page, so `astro.config.mjs` uses `base: '/'`.
-
-## 📄 License / credits
-
-Design based on the [iPortfolio](https://bootstrapmade.com/iportfolio-bootstrap-portfolio-websites-template/)
-template by [BootstrapMade](https://bootstrapmade.com/) (free license — footer
-credit retained).
+The Lab uses Three.js under the MIT License. The notice is included in [public/assets/lab/three-license.txt](public/assets/lab/three-license.txt).

@@ -1,0 +1,23 @@
+---
+import { withBase } from '../lib/site';
+
+interface Props {
+  id: string;
+  title: string;
+  context?: string;
+  summary?: string;
+  image: string;
+  alt?: string;
+  diagram?: boolean;
+}
+
+const { id, title, context, summary, image, alt = '', diagram } = Astro.props;
+---
+<article class:list={['project-tile', { 'project-tile-diagram': diagram }]}>
+  <a href={withBase(`/portfolio/${id}/`)} aria-label={title}>
+    <img src={withBase(image)} alt={alt} loading="lazy" />
+    {context && <p class="site-meta">{context}</p>}
+    <h3>{title} <span aria-hidden="true">↗</span></h3>
+    {summary && <p class="project-tile-summary">{summary}</p>}
+  </a>
+</article>

@@ -1,557 +1,160 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ProjectCard from '../components/ProjectCard.astro';
-import { SITE, NEWS, PERSON_LD, withBase } from '../lib/site';
+import { NEWS, SITE, personStructuredData, withBase } from '../lib/site';
+import ProjectTile from '../components/ProjectTile.astro';
 
-const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
-  (a, b) => a.data.order - b.data.order
-);
+const projects = (await getCollection('projects', ({ data }) => !data.draft))
+  .sort((a, b) => a.data.order - b.data.order);
 
-// Person structured data for the homepage. `alternateName` + LinkedIn `sameAs`
-// associate the legal name with this site without any visible on-page text.
-const personLd = { '@context': 'https://schema.org', ...PERSON_LD };
-
-const filters = ['Projects', 'Research', 'Competitions', 'Coursework'];
-
-// Hero typing animation roles
-const typedRoles = [
-  'Robotics Engineer',
-  'Perception & Control',
-  'Imitation Learning',
-  'Embedded & Mechatronics',
+const selected = [
+  {
+    id: 'visuotactile-diffusion-policy',
+    title: 'CONTACT',
+    context: 'Purdue MARS Lab · IROS 2026',
+    summary: 'We taught a Franka Panda to take objects apart and tested how tactile force fields changed what it could do.',
+    image: '/assets/img/portfolio/visuotactile-diffusion-policy/cover.jpg',
+    alt: 'CONTACT experiment and tactile sensing overview',
+    diagram: true,
+  },
+  {
+    id: 'aoi-ai-inspection',
+    title: 'Automated optical inspection',
+    context: 'NTNU · 2024–25',
+    summary: 'I led the build of a machine that uses polarized light to estimate residual stress in transparent samples.',
+    image: '/assets/img/portfolio/aoi-ai-inspection/cover.jpg',
+    alt: 'The optical inspection machine at Intelligent Asia, with a sample tray and an inspection screen',
+  },
+  {
+    id: 'fpv-ptz-teleoperation',
+    title: 'Egocentric teleoperation',
+    context: 'Purdue · 2025',
+    summary: 'I linked a Quest 3 to a moving camera and a Franka arm, so the operator could look around the workbench in VR.',
+    image: '/assets/img/portfolio/fpv-ptz-teleoperation/headset-view.jpg',
+    alt: 'The Franka Panda and its workspace as seen through the Quest 3 headset',
+  },
 ];
+
+const archive = projects.filter(project => !selected.some(work => work.id === project.id));
+const person = personStructuredData(Astro.site!);
+const profile = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    { '@type': 'WebSite', name: SITE.name, url: person.url },
+    { '@type': 'ProfilePage', url: person.url, mainEntity: person },
+  ],
+};
 ---
 
-<BaseLayout home={true} bodyClass="index-page" jsonLd={personLd}>
-  <!-- Hero Section -->
-  <section id="hero" class="hero-intro">
-    <div class="container" data-aos="fade-up">
-      <div class="row align-items-center gy-4">
-        <div class="col-lg-7 hero-text">
-          <p class="status-pill"><span class="dot"></span> Currently: {SITE.currentRole}</p>
-
-          <h1>I build robots that <span class="accent">see, feel, and act.</span></h1>
-
-          <p class="typed-line">
-            <span class="prompt">&gt;</span>
-            <span class="typed" data-roles={JSON.stringify(typedRoles)}></span><span class="caret">▏</span>
-          </p>
-
-          <div class="hero-cta">
-            <a href="#portfolio" class="btn-hero primary">View My Work</a>
-            <a href="#contact" class="btn-hero ghost">Get in Touch</a>
-            {
-              SITE.resume && (
-                <a href={withBase(SITE.resume)} class="btn-hero ghost"><i class="bi bi-download"></i> Résumé</a>
-              )
-            }
-          </div>
-        </div>
-
-        <div class="col-lg-5 hero-visual d-none d-lg-block">
-          <canvas class="node-graph" aria-hidden="true"></canvas>
-        </div>
-      </div>
+<BaseLayout bodyClass="homepage" jsonLd={profile}>
+  <section id="about" class="home-intro site-wrap" aria-labelledby="hero">
+    <h1 id="hero">{SITE.name}</h1>
+    <p>I’m a robotics master’s student at Purdue and a research associate at AMD. I work on how robots use cameras and touch to handle objects. I publish as {SITE.publicationName}.</p>
+    <div class="home-intro-links">
+      <a class="home-primary" href="#portfolio">Selected work <span aria-hidden="true">↓</span></a>
+      <a href={SITE.socials.linkedin}>LinkedIn <span aria-hidden="true">↗</span></a>
     </div>
   </section>
 
-  <!-- News Section -->
-  <section id="news" class="news section">
-    <div class="container section-title" data-aos="fade-up">
-      <span class="eyebrow">News</span>
-      <h2>Latest</h2>
+  <section id="portfolio" class="home-section site-wrap" aria-labelledby="home-work-title">
+    <h2 id="home-work-title">Selected work</h2>
+    <div class="project-grid">
+      {selected.map(work => <ProjectTile {...work} />)}
     </div>
+    <details class="home-disclosure">
+      <summary>All projects</summary>
+      <div class="project-grid project-grid-archive">
+        {archive.map(({ id, data }) => (
+          <ProjectTile
+            id={id}
+            title={data.title}
+            context={[data.date, data.filter].filter(Boolean).join(' · ')}
+            image={data.thumbnail}
+          />
+        ))}
+      </div>
+    </details>
+  </section>
 
-    <div class="container" data-aos="fade-up" data-aos-delay="100">
-      <ul class="news-list">
-        {
-          NEWS.map((item) => (
-            <li class="news-item">
-              <span class="news-date">{item.date}</span>
-              <span class="news-text">
-                {item.url ? (
-                  <a href={item.url.startsWith('http') ? item.url : withBase(item.url)}>
-                    {item.text}
-                    <i class="bi bi-arrow-right-short" aria-hidden="true" />
-                  </a>
-                ) : (
-                  item.text
-                )}
-              </span>
-            </li>
-          ))
-        }
+  <div class="site-wrap home-background">
+    <section id="resume" class="home-section home-experience" aria-labelledby="home-experience-title">
+      <h2 id="home-experience-title">Experience</h2>
+      <div class="home-role">
+        <div><h3>AMD</h3><p>Research Associate</p></div>
+        <span class="site-meta">Aug 2026 – present</span>
+        <p class="home-role-description">I explore how robot learning and tactile sensing run on AMD hardware, including real-time workloads at the edge.</p>
+      </div>
+      <div class="home-role">
+        <div><h3>Factory Intelligence</h3><p>AI &amp; Robotics Intern</p></div>
+        <span class="site-meta">May–Aug 2026</span>
+        <p class="home-role-description">Built data and training pipelines for robot imitation learning on industrial manipulation tasks.</p>
+      </div>
+      <details class="home-disclosure">
+        <summary>Earlier experience</summary>
+        <ul class="home-archive">
+          <li>
+            <span>FLUX Inc. · QA Intern</span><span>Feb–Jul 2025</span>
+            <p>Designed and ran firmware regression tests. Automated SSH test setup with Python and Bash/Expect, cutting setup time from about 100 seconds to under 5.</p>
+          </li>
+          <li>
+            <span>Skytech Inc. · Electronic Control Intern</span><span>Jul–Aug 2023</span>
+            <p>Assembled and tested control systems for semiconductor equipment and debugged wiring and I/O on site.</p>
+          </li>
+          <li>
+            <span>NTNU · Research Assistant</span><span>Feb–Jun 2023</span>
+            <p>Used Taguchi methods and an MLP to study manufacturing quality. Presented the work at ARIS 2023.</p>
+          </li>
+        </ul>
+      </details>
+    </section>
+
+    <section id="news" class="home-section" aria-labelledby="home-news-title">
+      <h2 id="home-news-title">Recent updates</h2>
+      <ul class="home-updates">
+        {NEWS.map(item => (
+          <li>
+            <span class="site-meta">{item.date}</span>
+            {item.url ? <a href={item.url.startsWith('http') ? item.url : withBase(item.url)}>{item.text} <span aria-hidden="true">↗</span></a> : <span>{item.text}</span>}
+          </li>
+        ))}
       </ul>
-    </div>
-  </section>
+    </section>
+  </div>
 
-  <!-- About Section -->
-  <section id="about" class="about section">
-    <div class="container section-title" data-aos="fade-up">
-      <span class="eyebrow">01 · About</span>
-      <h2>About</h2>
-      <p>{SITE.tagline}</p>
-    </div>
-
-    <div class="container" data-aos="fade-up" data-aos-delay="100">
-      <div class="row gy-4 justify-content-center">
-        <div class="col-lg-4">
-          <img src={withBase('/assets/img/my-profile-img.jpg')} class="img-fluid" alt="Victor Hu, robotics engineer" />
-        </div>
-        <div class="col-lg-8 content">
-          <h2>From Mechanical Roots to Robotic Intelligence</h2>
-
-          <p>
-            I started with a dual focus in <strong>Mechatronics</strong> and
-            <strong>Computer Science</strong> because I wanted to build a prototype from scratch: designing
-            the mechanism, wiring the electronics, and writing the control logic that brings it to life.
-          </p>
-
-          <div class="row">
-            <div class="col-lg-6">
-              <ul>
-                <li>
-                  <i class="bi bi-chevron-right"></i> <strong>Degree:</strong>
-                  <span>M.S. in Robotics (Purdue)</span>
-                </li>
-                <li>
-                  <i class="bi bi-chevron-right"></i> <strong>Focus:</strong>
-                  <span>Robotics, Perception, Control</span>
-                </li>
-                <li>
-                  <i class="bi bi-chevron-right"></i> <strong>Location:</strong>
-                  <span>{SITE.location}</span>
-                </li>
-              </ul>
-            </div>
-            <div class="col-lg-6">
-              <ul>
-                <li>
-                  <i class="bi bi-chevron-right"></i> <strong>Email:</strong>
-                  <span><a href={`mailto:${SITE.email}`}>{SITE.email}</a></span>
-                </li>
-                <li>
-                  <i class="bi bi-chevron-right"></i> <strong>LinkedIn:</strong>
-                  <span><a href={SITE.socials.linkedin} target="_blank" rel="noopener">in/jyunchihu</a></span>
-                </li>
-                <li>
-                  <i class="bi bi-chevron-right"></i> <strong>GitHub:</strong>
-                  <span><a href={SITE.socials.github} target="_blank" rel="noopener">github.com/Vict0rHu</a></span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <p class="py-3">
-            My work has centered on robots that perceive and act: <strong>tactile–visual sensor fusion</strong>
-            in the lab, an <strong>autonomous car</strong> for navigation and target shooting in coursework,
-            and now <strong>robot imitation learning</strong> as an AI &amp; Robotics Intern at
-            <strong>Factory Intelligence</strong>.
-          </p>
-
-          <p>
-            My core is <strong>robotics, mechatronics, and embedded systems</strong>: STM32 firmware, ROS2,
-            simulation, and computer vision, turning ideas into working hardware.
-          </p>
-        </div>
+  <section id="education" class="home-section site-wrap" aria-labelledby="home-education-title">
+    <h2 id="home-education-title">Education</h2>
+    <div class="home-education-grid">
+      <div class="home-role">
+        <div><h3>Purdue University</h3><p>M.S. in Robotics</p></div>
+        <span class="site-meta">2025–2027 (expected)</span>
+      </div>
+      <div class="home-role">
+        <div><h3>National Taiwan Normal University</h3><p>B.E. in Mechatronic Engineering, CS minor</p></div>
+        <span class="site-meta">2020–2025</span>
+      </div>
+      <div class="home-role">
+        <div><h3>University of Nevada, Reno</h3><p>Exchange student</p></div>
+        <span class="site-meta">2024–2025</span>
       </div>
     </div>
-  </section>
-
-  <!-- Skills Section -->
-  <section id="skills" class="skills section light-background">
-    <div class="container section-title" data-aos="fade-up">
-      <span class="eyebrow">02 · Skills</span>
-      <h2>Technical Skills</h2>
-    </div>
-
-    <div class="container" data-aos="fade-up" data-aos-delay="100">
-      <div class="row">
-        <div class="col-lg-6 col-md-6 d-flex align-items-stretch mb-4">
-          <div class="icon-box w-100">
-            <h4><i class="bi bi-eye"></i> AI & Computer Vision</h4>
-            <div class="skill-chips mt-3">
-              <span class="skill-chip">Imitation Learning</span>
-              <span class="skill-chip">Diffusion Policy</span>
-              <span class="skill-chip">Sensor Fusion</span>
-              <span class="skill-chip">PyTorch</span>
-              <span class="skill-chip">TensorFlow</span>
-              <span class="skill-chip">OpenCV</span>
-              <span class="skill-chip">Edge Inference</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-6 col-md-6 d-flex align-items-stretch mb-4">
-          <div class="icon-box w-100">
-            <h4><i class="bi bi-robot"></i> Robotics & Simulation</h4>
-            <div class="skill-chips mt-3">
-              <span class="skill-chip">ROS2 (Nodes/Topics)</span>
-              <span class="skill-chip">URDF/Xacro</span>
-              <span class="skill-chip">RViz/Gazebo</span>
-              <span class="skill-chip">Kinematics (FK/IK)</span>
-              <span class="skill-chip">CoppeliaSim</span>
-              <span class="skill-chip">Hardware Integration</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-6 col-md-6 d-flex align-items-stretch mb-4">
-          <div class="icon-box w-100">
-            <h4><i class="bi bi-cpu"></i> Embedded & Mechatronics</h4>
-            <div class="skill-chips mt-3">
-              <span class="skill-chip">Microcontroller (STM32)</span>
-              <span class="skill-chip">Circuit Wiring</span>
-              <span class="skill-chip">SolidWorks</span>
-              <span class="skill-chip">AutoCAD</span>
-              <span class="skill-chip">3D Printing</span>
-              <span class="skill-chip">Rapid Prototyping</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-6 col-md-6 d-flex align-items-stretch mb-4">
-          <div class="icon-box w-100">
-            <h4><i class="bi bi-code-slash"></i> Languages & Tools</h4>
-            <div class="skill-chips mt-3">
-              <span class="skill-chip">Python</span>
-              <span class="skill-chip">C / Embedded C</span>
-              <span class="skill-chip">Bash/Expect</span>
-              <span class="skill-chip">MATLAB</span>
-              <span class="skill-chip">SQL</span>
-              <span class="skill-chip">Git/GitHub</span>
-              <span class="skill-chip">Linux/SSH</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Resume Section -->
-  <section id="resume" class="resume section">
-    <div class="container section-title" data-aos="fade-up">
-      <span class="eyebrow">03 · Resume</span>
-      <h2>Resume</h2>
-      <p>A comprehensive overview of my academic background and professional journey in robotics.</p>
-    </div>
-
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
-          <h3 class="resume-title">Education</h3>
-
-          <div class="resume-item">
-            <h4><strong>Master of Science in Engineering - Robotics</strong></h4>
-            <h5>2025 - 2027 (Expected)</h5>
-            <p><em>Purdue University, West Lafayette, IN</em></p>
-            <p><strong>GPA:</strong> 4.0/4.0</p>
-            <p>
-              Specializing in ROS2, perception, and sensor fusion, integrating software intelligence with
-              hardware reality.
-            </p>
-            <p>
-              <strong>Key Coursework:</strong> Robotic Systems (ROS2), Industrial Robotics (Sim), Deep
-              Learning for CV, Microprocessors (STM32).
-            </p>
-          </div>
-
-          <div class="resume-item">
-            <h4><strong>BE in Mechatronic Engineering, Minor in CS</strong></h4>
-            <h5>2020 - 2025</h5>
-            <p><em>National Taiwan Normal University, Taipei, Taiwan</em></p>
-            <p><strong>GPA:</strong> 3.71/4.0</p>
-            <p>
-              Driven by the desire to <strong>"build any prototype from scratch,"</strong> I pursued a dual
-              focus in Mechatronics (mechanical/electrical foundations) and Computer Science (algorithmic
-              control), bridging hardware and software.
-            </p>
-            <p>
-              <strong>Key Coursework:</strong> Automatic Control, Mechanism Design, Data Structures,
-              Algorithms, System Programming, Image Processing.
-            </p>
-          </div>
-
-          <div class="resume-item">
-            <h4><strong>International Exchange Student</strong></h4>
-            <h5>2024 - 2025</h5>
-            <p><em>University of Nevada, Reno, NV</em></p>
-            <p>
-              Broadened global perspective and adapted to the US educational system while taking advanced
-              engineering electives.
-            </p>
-          </div>
-        </div>
-
-        <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
-          <h3 class="resume-title">Professional Experience</h3>
-
-          <div class="resume-item">
-            <h4><strong>AI & Robotics Intern</strong></h4>
-            <h5>May 2026 - Aug 2026</h5>
-            <p><em>Factory Intelligence</em></p>
-            <ul>
-              <li>Working on <strong>robot imitation learning</strong>: building data and training pipelines for manipulation policies.</li>
-              <li>Bridging perception and control on real robot hardware.</li>
-            </ul>
-          </div>
-
-          <div class="resume-item">
-            <h4><strong>Quality Assurance Intern</strong></h4>
-            <h5>Feb 2025 - July 2025</h5>
-            <p><em>FLUX Inc., Taipei, Taiwan</em></p>
-            <ul>
-              <li>
-                Engineered a hybrid <strong>Python</strong> + <strong>Bash/Expect</strong> suite for
-                automated SSH firmware testing, eliminating manual-entry errors.
-              </li>
-              <li>
-                Cut test setup time by <strong>~95%</strong> (from 100s to &lt;5s) and accelerated firmware
-                regression workflows.
-              </li>
-              <li>Executed regression suites and designed new test cases for firmware release quality.</li>
-            </ul>
-          </div>
-
-          <div class="resume-item">
-            <h4><strong>Research Assistant</strong></h4>
-            <h5>Feb 2023 - Jun 2023</h5>
-            <p><em>National Taiwan Normal University, Taipei, Taiwan</em></p>
-            <ul>
-              <li>
-                Applied <strong>Taguchi methods</strong> to identify high-impact factors, then designed an
-                end-to-end pipeline for data collection, preprocessing, and <strong>MLP-based prediction</strong>.
-              </li>
-              <li>Presented research findings at the <strong>2023 ARIS International Conference</strong>.</li>
-            </ul>
-          </div>
-
-          <div class="resume-item">
-            <h4><strong>Electronic Control Intern</strong></h4>
-            <h5>Jul 2023 - Aug 2023</h5>
-            <p><em>Skytech Inc., Hsinchu, Taiwan</em></p>
-            <ul>
-              <li>Assembled, wired, and tested electrical control systems for semiconductor equipment.</li>
-              <li>Troubleshot signal wiring and I/O modules on-site, strengthening system-level debugging.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Portfolio Section -->
-  <section id="portfolio" class="portfolio section light-background">
-    <div class="container section-title" data-aos="fade-up">
-      <span class="eyebrow">04 · Portfolio</span>
-      <h2>Portfolio</h2>
-    </div>
-
-    <div class="container">
-      <ul class="portfolio-filters" data-aos="fade-up" data-aos-delay="100">
-        <li><button type="button" data-filter="*" class="filter-active">All</button></li>
-        {filters.map((f) => <li><button type="button" data-filter={`.filter-${f.toLowerCase()}`}>{f}</button></li>)}
+    <details class="home-disclosure">
+      <summary>Coursework and GPA</summary>
+      <ul class="home-archive">
+        <li><strong>Purdue</strong><p>GPA 4.0/4.0. Robotic systems, industrial robotics, computer vision and microprocessors.</p></li>
+        <li><strong>NTNU</strong><p>GPA 3.71/4.0. Control, mechanism design, systems programming and image processing.</p></li>
       </ul>
-
-      <div class="row gy-4 portfolio-container" data-aos="fade-up" data-aos-delay="200">
-        {projects.map((project) => <ProjectCard project={project} />)}
-      </div>
-    </div>
+    </details>
   </section>
 
-  <!-- Contact Section -->
-  <section id="contact" class="contact section">
-    <div class="container section-title" data-aos="fade-up">
-      <span class="eyebrow">05 · Contact</span>
-      <h2>Get in Touch</h2>
-      <p>Open to robotics roles, collaborations, and a good conversation.</p>
+  <section class="home-section site-wrap home-lab" aria-labelledby="home-lab-title">
+    <div>
+      <h2 id="home-lab-title">Interactive Lab</h2>
+      <p>Drive a small robot around my room and step into recreations of my experiments.</p>
+      <a href={withBase('/lab/')}>Explore the Lab <span aria-hidden="true">↗</span></a>
+      <small>Early access</small>
     </div>
-
-    <div class="container" data-aos="fade-up" data-aos-delay="100">
-      <div class="row gy-4">
-        <div class="col-lg-5">
-          <div class="info-wrap">
-            <div class="info-item d-flex align-items-center">
-              <i class="bi bi-envelope flex-shrink-0"></i>
-              <div>
-                <h3>Email</h3>
-                <p><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
-              </div>
-            </div>
-            <div class="info-item d-flex align-items-center">
-              <i class="bi bi-geo-alt flex-shrink-0"></i>
-              <div>
-                <h3>Location</h3>
-                <p>{SITE.location}</p>
-              </div>
-            </div>
-            <div class="info-item d-flex align-items-center">
-              <i class="bi bi-linkedin flex-shrink-0"></i>
-              <div>
-                <h3>LinkedIn</h3>
-                <p><a href={SITE.socials.linkedin} target="_blank">in/jyunchihu</a></p>
-              </div>
-            </div>
-            <div class="info-item d-flex align-items-center mb-0">
-              <i class="bi bi-github flex-shrink-0"></i>
-              <div>
-                <h3>GitHub</h3>
-                <p><a href={SITE.socials.github} target="_blank">github.com/Vict0rHu</a></p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-7">
-          <div class="contact-cta">
-            <h3>Let's build something.</h3>
-            <p>
-              Whether it's a robotics role, a research collaboration, or a question about one of my
-              projects, my inbox is open and I reply quickly.
-            </p>
-            <div class="hero-cta">
-              <a class="btn-hero primary" href={`mailto:${SITE.email}`}><i class="bi bi-envelope"></i> Email me</a>
-              <a class="btn-hero ghost" href={SITE.socials.linkedin} target="_blank"
-                ><i class="bi bi-linkedin"></i> Connect on LinkedIn</a
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <a class="home-lab-image" href={withBase('/lab/')} aria-label="Open the interactive Lab">
+      <img src={withBase('/assets/img/lab-contact-preview.webp')} width="1510" height="857" alt="The CONTACT memory in the interactive Lab, with a Franka Panda arm, camera feeds, and the visitor robot" loading="lazy" />
+    </a>
   </section>
 </BaseLayout>
-
-<script>
-  // --- Portfolio category filter (replaces Isotope) ---
-  const filterBtns = document.querySelectorAll<HTMLElement>('.portfolio-filters button');
-  const items = document.querySelectorAll<HTMLElement>('.portfolio-container .portfolio-item');
-  filterBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.querySelector('.portfolio-filters .filter-active')?.classList.remove('filter-active');
-      btn.classList.add('filter-active');
-      const filter = btn.dataset.filter ?? '*';
-      const cls = filter.replace('.', '');
-      items.forEach((item) => {
-        const show = filter === '*' || item.classList.contains(cls);
-        item.classList.toggle('portfolio-hidden', !show);
-      });
-    });
-  });
-
-  // --- Hero typing effect ---
-  const typedEl = document.querySelector<HTMLElement>('.typed');
-  if (typedEl) {
-    const roles: string[] = JSON.parse(typedEl.dataset.roles || '[]');
-    let i = 0;
-    let j = 0;
-    let deleting = false;
-    const tick = () => {
-      const word = roles[i % roles.length];
-      typedEl.textContent = word.slice(0, j);
-      if (!deleting && j < word.length) {
-        j++;
-        setTimeout(tick, 80);
-      } else if (deleting && j > 0) {
-        j--;
-        setTimeout(tick, 40);
-      } else if (!deleting) {
-        deleting = true;
-        setTimeout(tick, 1500);
-      } else {
-        deleting = false;
-        i++;
-        setTimeout(tick, 250);
-      }
-    };
-    tick();
-  }
-
-  // --- Hero node-graph animation (ROS-graph / sensor-fusion motif) ---
-  const canvas = document.querySelector<HTMLCanvasElement>('.node-graph');
-  if (canvas) {
-    const ctx = canvas.getContext('2d')!;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const accent =
-      getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim() || '#149ddd';
-    const COUNT = 16;
-    const LINK_DIST = 130;
-    let w = 0;
-    let h = 0;
-    let nodes: { x: number; y: number; vx: number; vy: number; r: number }[] = [];
-    let raf = 0;
-    let running = false;
-
-    const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      w = canvas.clientWidth;
-      h = canvas.clientHeight;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    const init = () => {
-      nodes = Array.from({ length: COUNT }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: reduce ? 0 : (Math.random() - 0.5) * 0.4,
-        vy: reduce ? 0 : (Math.random() - 0.5) * 0.4,
-        r: Math.random() * 2 + 1.5,
-      }));
-    };
-    const draw = () => {
-      ctx.clearRect(0, 0, w, h);
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const a = nodes[i];
-          const b = nodes[j];
-          const d = Math.hypot(a.x - b.x, a.y - b.y);
-          if (d < LINK_DIST) {
-            ctx.strokeStyle = accent;
-            ctx.globalAlpha = (1 - d / LINK_DIST) * 0.35;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-        }
-      }
-      ctx.globalAlpha = 0.9;
-      ctx.fillStyle = accent;
-      for (const n of nodes) {
-        n.x += n.vx;
-        n.y += n.vy;
-        if (n.x < 0 || n.x > w) n.vx *= -1;
-        if (n.y < 0 || n.y > h) n.vy *= -1;
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      if (!reduce) raf = requestAnimationFrame(draw);
-    };
-    const start = () => {
-      if (running || reduce) return;
-      running = true;
-      draw();
-    };
-    const stop = () => {
-      running = false;
-      cancelAnimationFrame(raf);
-    };
-
-    resize();
-    init();
-    draw(); // paint one frame immediately (and the only frame when reduced-motion)
-    window.addEventListener('resize', () => {
-      resize();
-      init();
-      if (reduce) draw();
-    });
-    new IntersectionObserver((entries) => {
-      entries.forEach((e) => (e.isIntersecting ? start() : stop()));
-    }).observe(canvas);
-  }
-</script>

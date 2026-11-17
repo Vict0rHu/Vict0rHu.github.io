@@ -5,7 +5,7 @@ import { glob } from 'astro/loaders';
  * Portfolio projects.
  *
  * Each project is a markdown file in `src/content/projects/`.
- * - The frontmatter (below) drives the grid card and the case-study sidebar.
+ * - The frontmatter (below) drives the grid card and the case study.
  * - The markdown body becomes the rich "overview" narrative on the detail page.
  *
  * The schema is validated at build time, so a typo in `filter` (or a missing
@@ -15,7 +15,7 @@ const projects = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
   schema: z.object({
     title: z.string(),
-    // Must match one of the portfolio filter buttons.
+    // Category shown in the project archive.
     filter: z.enum(['Projects', 'Research', 'Competitions', 'Coursework']),
     category: z.string().optional(),
     date: z.string().optional(),
@@ -25,21 +25,20 @@ const projects = defineCollection({
     // Card thumbnail + one-line blurb shown in the grid.
     thumbnail: z.string(),
     description: z.string(),
-    // Tech chips shown in the sidebar.
+    // Tools shown in the case study.
     tech: z.array(z.string()).default([]),
-    // Outbound links (GitHub / demo / paper …). `icon` is a Bootstrap Icons class.
+    // Outbound links (GitHub / demo / paper …).
     links: z
       .array(
         z.object({
           label: z.string(),
-          icon: z.string().optional(),
           url: z.string(),
         })
       )
       .default([]),
     // Bullet-point outcomes.
     highlights: z.array(z.string()).default([]),
-    // Slider media: images and/or embedded videos (YouTube/Vimeo URL or .mp4).
+    // Case-study media: images and/or embedded videos (YouTube/Vimeo URL or .mp4).
     media: z
       .array(
         z.object({
