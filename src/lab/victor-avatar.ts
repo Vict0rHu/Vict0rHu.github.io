@@ -38,3 +38,15 @@ export function victorAvatar({ shirt = 0x7287a3, hair = 0x252435, skin = 0xb58a7
   });
   return { root: awake, dressed, head, eyes, openEyes, closedEyes, legs, arms };
 }
+
+export function backpackModel() {
+  const bag = new T.Group();
+  box(bag, [.48, .58, .24], [0, -.03, 0], 0x404e42);
+  box(bag, [.42, .095, .21], [0, .3, 0], 0x52644e);
+  box(bag, [.41, .24, .09], [0, -.155, .153], 0x66795a);
+  box(bag, [.36, .024, .028], [0, -.064, .204], 0x303f37);
+  box(bag, [.027, .049, .019], [.128, -.085, .217], 0xc2a474);
+  for (const x of [-.064, .064]) box(bag, [.028, .085, .031], [x, .36, -.015], 0x303f37);
+  box(bag, [.14, .026, .03], [0, .408, -.015], 0x303f37);
+  return bag;
+}

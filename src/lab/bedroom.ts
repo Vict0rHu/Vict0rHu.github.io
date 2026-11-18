@@ -7,7 +7,7 @@ import { lounge } from './lounge';
 import { walkingRoute } from './navigation';
 import { victorRoutine } from './routine';
 import { woodFloor } from './wood-floor';
-import { victorAvatar } from './victor-avatar';
+import { backpackModel, victorAvatar } from './victor-avatar';
 import { enclosedPrinter } from './enclosed-printer';
 import { entryClock } from './entry-clock';
 
@@ -186,17 +186,6 @@ export function bedroom(fastRoutine: boolean) {
   spill.position.set(.55, 2.05, .19);
   desk.add(spill);
 
-  function backpackModel() {
-    const bag = new T.Group();
-    box(bag, [.48, .58, .24], [0, -.03, 0], 0x404e42);
-    box(bag, [.42, .095, .21], [0, .3, 0], 0x52644e);
-    box(bag, [.41, .24, .09], [0, -.155, .153], 0x66795a);
-    box(bag, [.36, .024, .028], [0, -.064, .204], 0x303f37);
-    box(bag, [.027, .049, .019], [.128, -.085, .217], 0xc2a474);
-    for (const x of [-.064, .064]) box(bag, [.028, .085, .031], [x, .36, -.015], 0x303f37);
-    box(bag, [.14, .026, .03], [0, .408, -.015], 0x303f37);
-    return bag;
-  }
   const hookTipHeight = .089;
   const hookTipY = deskTop - hookTipHeight / 2;
   const bagRack = new T.Vector3(2.49, hookTipY - .424, 1.64);

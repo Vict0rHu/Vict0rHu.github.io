@@ -1,6 +1,8 @@
 import * as T from 'three';
 import { daylightAt, trailThoughts } from './content';
 import { box, cylinder, travelCircle } from './set';
+import { overlookBounds, overlookFence, overlookPath, overlookPortalX, trailHeight, trailLandscape } from './trail-landscape';
+import { trailHikers } from './trail-hikers';
 
 function ellipsoid(parent: T.Object3D, color: number, position: [number, number, number], size: [number, number, number]) {
   const mesh = new T.Mesh(new T.IcosahedronGeometry(1, 1), new T.MeshStandardMaterial({ color, flatShading: true }));
@@ -18,16 +20,19 @@ function branch(parent: T.Object3D, from: [number, number, number], to: [number,
   mesh.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), end.sub(start).normalize());
 }
 
-function buildElk(parent: T.Object3D, x: number, z: number, scale: number, yaw: number, antlers: boolean) {
+function buildUngulate(parent: T.Object3D, x: number, z: number, scale: number, yaw: number, species: 'elk' | 'deer', antlers: boolean) {
   const animal = new T.Group();
-  animal.position.set(x, .04, z);
+  animal.name = species === 'deer' ? 'Mule deer' : 'Elk';
+  animal.position.set(x, trailHeight(x, z) + .045, z);
   animal.rotation.y = yaw;
   animal.scale.setScalar(scale);
   parent.add(animal);
-  const brown = 0x9a6241;
-  const dark = 0x573a2c;
+  const deer = species === 'deer';
+  const brown = deer ? 0x9d8771 : 0x9a6241;
+  const dark = deer ? 0x665144 : 0x573a2c;
   ellipsoid(animal, brown, [0, .99, 0], [.84, .38, .31]);
-  ellipsoid(animal, 0xd4af88, [-.6, .96, 0], [.24, .25, .28]);
+  ellipsoid(animal, deer ? 0xe2d3bb : 0xd4af88, [-.6, .96, 0], [.24, .25, .28]);
+  if (deer) ellipsoid(animal, dark, [-.78, .95, 0], [.11, .14, .085]);
   const legs: T.Group[] = [];
   for (const lx of [-.52, .52]) for (const lz of [-.2, .2]) {
     const leg = new T.Group();
@@ -44,7 +49,10 @@ function buildElk(parent: T.Object3D, x: number, z: number, scale: number, yaw: 
   ellipsoid(neck, dark, [.53, .58, 0], [.26, .15, .14]);
   ellipsoid(neck, 0x977155, [.74, .53, 0], [.16, .105, .12]);
   for (const side of [-1, 1]) {
-    ellipsoid(neck, brown, [.42, .67, side * .17], [.13, .05, .095]);
+    if (deer) {
+      const ear = ellipsoid(neck, brown, [.405, .76, side * .20], [.095, .19, .081]);
+      ear.rotation.x = side * .67;
+    } else ellipsoid(neck, brown, [.42, .67, side * .17], [.13, .05, .095]);
     if (!antlers) continue;
     const antler = 0xc6a879;
     const tip: [number, number, number] = [.03, 1.24, side * .44];
@@ -54,6 +62,26 @@ function buildElk(parent: T.Object3D, x: number, z: number, scale: number, yaw: 
     branch(neck, [.13, 1.12, side * .39], [.07, 1.36, side * .41], .016, antler);
   }
   return { animal, neck, legs };
+}
+
+function buildMarmot(scene: T.Scene, x: number, z: number, pace: number) {
+  const animal = new T.Group();
+  animal.name = 'Marmot';
+  scene.add(animal);
+  const fur = 0x9d754d;
+  ellipsoid(animal, fur, [0,.27,0], [.4,.25,.22]);
+  ellipsoid(animal, 0x71533f, [-.38,.18,0], [.19,.10,.105]);
+  const head = new T.Group();
+  head.position.set(.25,.36,0);
+  animal.add(head);
+  ellipsoid(head, 0xb68c65, [0,.03,0], [.21,.19,.17]);
+  ellipsoid(head, 0x43362b, [.175,-.04,0], [.084,.07,.09]);
+  for (const side of [-1,1]) {
+    ellipsoid(head, fur, [-.093,.15,side * .108], [.064,.064,.057]);
+    ellipsoid(head, 0x302822, [.079,.074,side * .145], [.031,.033,.028]);
+  }
+  animal.position.set(x, trailHeight(x,z), z);
+  return { animal, head, x, z, pace };
 }
 
 function buildSasquatch(scene: T.Scene) {
@@ -91,17 +119,18 @@ function buildSasquatch(scene: T.Scene) {
   box(head, [.13, .038, .023], [0, -.1, .395], 0x55342c);
   cylinder(torso, .34, .12, 0, .47, 0, 0xc46b62);
   box(torso, [.15, .31, .075], [-.17, .31, .292], 0xc46b62).rotation.z = -.16;
-  creature.position.set(-1.9, 0, -.88);
+  const start = -3.6;
+  creature.position.set(start, trailHeight(start, overlookPath(start)), overlookPath(start));
   creature.rotation.y = -.19;
   scene.add(creature);
   return { creature, torso, head, arms, legs };
 }
 
-export function coloradoTrail() {
+export function mountainOverlook() {
   const scene = new T.Scene();
   const sky = new T.Color();
   scene.background = sky;
-  scene.fog = new T.Fog(sky, 22, 62);
+  scene.fog = new T.Fog(sky, 28, 83);
   const ambient = new T.HemisphereLight(0xe2f2ef, 0x958568, 2.05);
   scene.add(ambient);
   const sun = new T.DirectionalLight(0xffdbab, 2.9);
@@ -118,78 +147,40 @@ export function coloradoTrail() {
   const twilight = new T.Color(0xff9d62);
   const starPositions = [];
   for (let i = 0; i < 72; i++) {
-    starPositions.push(Math.sin(i * 17.63) * 31, 5.5 + (i * 37 % 67) * .19, -20 - (i * 29 % 61) * .19);
+    starPositions.push(Math.sin(i * 17.63) * 65, 21 + (i * 37 % 67) * .32, -66 - (i * 29 % 61) * .20);
   }
   const starGeometry = new T.BufferGeometry().setAttribute('position', new T.Float32BufferAttribute(starPositions, 3));
   const stars = new T.Points(starGeometry, new T.PointsMaterial({
     color: 0xe4eaff, size: 2.5, sizeAttenuation: false, transparent: true, depthWrite: false, toneMapped: false, fog: false,
   }));
   scene.add(stars);
-  const trailZ = 2.8;
-  const trailLength = 80;
-  box(scene, [100, .19, 45], [0, -.11, -5], 0x728052);
-  box(scene, [trailLength, .021, 3.35], [0, .001, trailZ], 0xab946e);
-  box(scene, [trailLength, .026, .37], [0, .003, trailZ + 1.5], 0x9d865e);
-  box(scene, [trailLength, .026, .22], [0, .004, trailZ - 1.55], 0xc0a979);
+  const landscape = trailLandscape(scene);
+  const hikers = trailHikers(scene);
 
-  for (const [x, z, height, width, color] of [
-    [-17,-24,10,9,0x7799a1], [-6,-25,14,10,0x7a9aa7], [5,-28,15,12,0x7e9cb0], [17,-24,11,9,0x7895a0],
-    [-12,-17,8,9,0x527778], [-2,-19,6,8,0x64867e], [10,-18,9,10,0x63807f], [20,-16,7,8,0x4c7475],
-  ]) {
-    const mountain = new T.Mesh(new T.ConeGeometry(width, height, 5), new T.MeshStandardMaterial({ color, flatShading: true }));
-    mountain.position.set(x, height * .33, z);
-    mountain.rotation.y = x * .18;
-    scene.add(mountain);
-    if (height < 10) continue;
-    const snow = new T.Mesh(new T.ConeGeometry(width * .32, height * .325, 5), new T.MeshStandardMaterial({ color: 0xe1e7df }));
-    snow.position.set(x, height * .669, z);
-    snow.rotation.copy(mountain.rotation);
-    scene.add(snow);
-  }
-
-  for (const [x, z, height] of [[-9,-5,3.4],[-6.8,-7,2.8],[-4.2,-9,3.3],[6.9,-5.9,3.3],[8.1,-7.1,3],[9.4,-4.8,2.8], [2,-11,3.6]]) {
-    cylinder(scene, .115, height, x, height / 2, z, 0xb0a190);
-    ellipsoid(scene, 0xc4ae46, [x, height * .87, z], [.74, 1.13, .64]);
-    ellipsoid(scene, 0x9c9b4b, [x - .48, height * .73, z + .17], [.56, .67, .54]);
-    for (const y of [.47, .93, 1.52]) box(scene, [.18, .043, .027], [x, y, z + .109], 0x554d40);
-  }
-  for (let i = 0; i < 24; i++) {
-    const x = (i % 12 - 5.5) * 2.62 + Math.sin(i) * .6;
-    const z = -8.8 - Math.floor(i / 12) * 3.4 - Math.cos(i * 1.8);
-    const size = 1.42 + .7 * Math.cos(i * 2.1) ** 2;
-    for (const [level, radius] of [[.71,.53],[1.13,.44]]) {
-      const pine = new T.Mesh(new T.ConeGeometry(size * radius, size, 6), new T.MeshStandardMaterial({ color: i % 2 ? 0x385d56 : 0x466b58 }));
-      pine.position.set(x, size * level, z);
-      scene.add(pine);
-    }
-  }
-  for (let i = 0; i < 22; i++) {
-    const x = (i - 10.5) * 1.13;
-    const z = Math.sin(i * 3.15) * 2 - (i % 3 ? 1.35 : 3.4);
-    ellipsoid(scene, i % 3 ? 0x93966b : 0x777569, [x, .095, z], [.37, .17, .31]);
-  }
-
-  const fenceZ = .55;
-  for (let x = -39.6; x <= 39.61; x += 1.8) box(scene, [.13, .75, .13], [x, .37, fenceZ], 0x645041);
-  for (const y of [.29, .59]) box(scene, [trailLength, .075, .11], [0, y, fenceZ], 0x88684a);
-  const herd = [
-    [2.55, -2.7, 1.08], [.15, -4.9, .68], [-3.65, -2.15, .94],
-    [6.15, -3.25, .9], [-1.98, -5.72, .86], [4.8, -5.3, 1.02],
-  ].map(([x, z, scale], i) => ({
-    ...buildElk(scene, x, z, scale, -.31 + i * .92, i === 0 || i === 5),
-    home: new T.Vector3(x, 0, z), target: new T.Vector3(x, 0, z),
-    wait: 4 + i * 1.6, moving: false, pace: .48 + i * .035,
-    shadow: ellipsoid(scene, 0x495644, [x, .011, z], [.72 * scale, .026, .32 * scale]),
-  }));
+  const animals = (species: 'elk' | 'deer', positions: [number, number, number][]) => positions.map(([x, z, scale], i) => {
+    const model = buildUngulate(scene, x, z, scale, -.31 + i * .92, species, species === 'elk' && i % 4 === 0);
+    const shadow = ellipsoid(scene, 0x495644, [x, trailHeight(x,z) + .025, z], [.72 * scale, .012, .32 * scale]);
+    return { ...model, home: new T.Vector3(x, 0, z), target: new T.Vector3(x, 0, z),
+      wait: 3 + i * .75, moving: false, pace: .48 + i % 6 * .035, shadow };
+  });
+  const herd = animals('elk', [
+    [2.55,-2.7,1.08], [.15,-4.9,.68], [-3.65,-2.15,.94], [6.15,-3.25,.9], [-1.98,-5.72,.86], [4.8,-5.3,1.02],
+    [-16.6,-4.2,1.02], [-13.7,-2.35,.84], [-10.35,-5.9,.93],
+    [11.2,-3.55,.98], [15.45,-5.45,1.04], [19.3,-2.95,.78],
+  ]);
+  const deer = animals('deer', [[-18.7,-6.6,.66], [16.2,-7.55,.65]]);
+  const grazers = [...herd, ...deer];
+  const marmots = [
+    buildMarmot(scene,-11.45,-1.55,1.2), buildMarmot(scene,8.45,-1.39,1.1), buildMarmot(scene,18.15,-1.45,1.3),
+  ];
   const { creature: sasquatch, torso, head, arms, legs } = buildSasquatch(scene);
   const sasquatchAnchor = { point: new T.Vector3(), target: new T.Vector3(), radius: 1.35 };
-  const patrol = [
-    new T.Vector3(-1.9, 0, -.88), new T.Vector3(-.65, 0, -1.43),
-    new T.Vector3(-2.29, 0, -1.63), new T.Vector3(-3.19, 0, -.91),
-  ];
-  let patrolIndex = 0;
+  let travelDirection = 1;
+  let roamTarget = 3;
+  let fleeRemaining = 0;
+  let cooldown = 0;
   let looking = 0;
-  let stopRemaining = 2;
+  let stopRemaining = 1.8;
   let gait = 0;
   let timeInScene = 0;
   let activeSasquatch = false;
@@ -200,6 +191,7 @@ export function coloradoTrail() {
   let wasNearSasquatch = false;
   const thoughtPoint = new T.Vector3();
   const direction = new T.Vector3();
+  const elkAnchor = { point: new T.Vector3(), target: new T.Vector3(), radius: 1.65 };
 
   function say(group: T.Group, lines: readonly string[]) {
     const choices = lines.filter(line => line !== thought);
@@ -210,7 +202,7 @@ export function coloradoTrail() {
   }
 
   function walkHerd(seconds: number) {
-    for (const elk of herd) {
+    for (const elk of grazers) {
       if (elk.moving) {
         direction.set(elk.target.x - elk.animal.position.x, 0, elk.target.z - elk.animal.position.z);
         const distance = direction.length();
@@ -223,7 +215,7 @@ export function coloradoTrail() {
           const heading = Math.atan2(-direction.z, direction.x);
           const turn = Math.atan2(Math.sin(heading - elk.animal.rotation.y), Math.cos(heading - elk.animal.rotation.y));
           elk.animal.rotation.y += T.MathUtils.clamp(turn, -seconds * 3, seconds * 3);
-          elk.animal.position.addScaledVector(direction, seconds * elk.pace / distance);
+          if (Math.abs(turn) < .72) elk.animal.position.addScaledVector(direction, seconds * elk.pace / distance);
         }
       } else {
         elk.wait -= seconds;
@@ -240,52 +232,90 @@ export function coloradoTrail() {
         elk.moving ? -.08 : -.62 + Math.sin(timeInScene * 1.12 + elk.home.z) * .47, 2.8, seconds);
       elk.shadow.position.x = elk.animal.position.x;
       elk.shadow.position.z = elk.animal.position.z;
+      const grade = trailHeight(elk.animal.position.x, elk.animal.position.z);
+      elk.animal.position.y = grade + .045;
+      elk.shadow.position.y = grade + .025;
       elk.shadow.rotation.y = elk.animal.rotation.y;
+    }
+    for (const { animal, head, x, z, pace } of marmots) {
+      const phase = T.MathUtils.euclideanModulo(timeInScene * .12 * pace + x, 1);
+      const moving = phase < .32 || (phase > .52 && phase < .84);
+      const distance = -.46 + .92 * (
+        T.MathUtils.smoothstep(phase, 0, .32) - T.MathUtils.smoothstep(phase, .52, .84)
+      );
+      animal.position.x = x + distance;
+      animal.position.y = trailHeight(animal.position.x, z) + (moving ? Math.abs(Math.sin(timeInScene * 6 + z)) * .028 : 0);
+      animal.rotation.y = T.MathUtils.damp(animal.rotation.y, phase < .52 ? 0 : Math.PI, 5, seconds);
+      head.rotation.z = -.10 + Math.sin(timeInScene * 2.4 + x) * .12;
     }
   }
 
-  function sneak(seconds: number, reduceMotion: boolean) {
-    const delta = direction.subVectors(patrol[patrolIndex], sasquatch.position);
-    const pace = seconds * .61;
+  function sneak(seconds: number, visitor: T.Vector3, reduceMotion: boolean) {
+    cooldown = Math.max(0, cooldown - seconds);
+    const here = sasquatch.position;
+    const startled = cooldown === 0 && here.distanceToSquared(visitor) < 2.2 ** 2;
+    if (startled) {
+      travelDirection = here.x >= visitor.x ? 1 : -1;
+      if (here.x + travelDirection * 5 < -19 || here.x + travelDirection * 5 > 20) travelDirection *= -1;
+      roamTarget = T.MathUtils.clamp(here.x + travelDirection * 12, -19, 20);
+      fleeRemaining = 3.3;
+      stopRemaining = 0;
+      cooldown = 8.5;
+      say(sasquatch, trailThoughts.startled);
+    }
+
+    const running = fleeRemaining > 0;
     let walking = false;
-    if (!reduceMotion && stopRemaining > 0) {
+    if (stopRemaining > 0) {
       looking += seconds;
       stopRemaining -= seconds;
-    } else if (!reduceMotion && delta.lengthSq() <= pace ** 2) {
-      sasquatch.position.copy(patrol[patrolIndex]);
-      patrolIndex = (patrolIndex + 1) % patrol.length;
-      stopRemaining = 2.5;
-      looking = 0;
-    } else if (!reduceMotion) {
-      walking = true;
-      const heading = Math.atan2(delta.x, delta.z);
-      const turn = Math.atan2(Math.sin(heading - sasquatch.rotation.y), Math.cos(heading - sasquatch.rotation.y));
-      sasquatch.rotation.y += T.MathUtils.clamp(turn, -seconds * 3, seconds * 3);
-      sasquatch.position.addScaledVector(delta.normalize(), pace);
-      gait += seconds * 8.8;
+    } else if (running || !reduceMotion) {
+      const toGo = roamTarget - here.x;
+      const moving = Math.min(Math.abs(toGo), seconds * (running ? 3.8 : .73));
+      const x = here.x + moving * Math.sign(toGo);
+      const z = overlookPath(x) + .12;
+      if (moving > .001) {
+        walking = true;
+        const heading = Math.atan2(x - here.x, z - here.z);
+        const turn = Math.atan2(Math.sin(heading - sasquatch.rotation.y), Math.cos(heading - sasquatch.rotation.y));
+        sasquatch.rotation.y += turn * (1 - Math.exp(-(running ? 13 : 5) * seconds));
+        here.set(x, trailHeight(x,z), z);
+        gait += moving * (running ? 5.4 : 8.6);
+      }
+      fleeRemaining = Math.max(0, fleeRemaining - seconds);
+      if (Math.abs(toGo) - moving < .002 || (running && fleeRemaining === 0)) {
+        fleeRemaining = 0;
+        stopRemaining = running ? 2.1 : 2.4 + Math.random() * 1.6;
+        looking = 0;
+        if (here.x + travelDirection * 3 < -18.5 || here.x + travelDirection * 3 > 19.5) travelDirection *= -1;
+        roamTarget = T.MathUtils.clamp(here.x + travelDirection * (5 + Math.random() * 3), -18.5, 19.5);
+      }
     }
-    const stride = walking ? Math.sin(gait) : 0;
-    torso.rotation.x = .16 + Math.abs(stride) * .11;
-    torso.position.y = 1.13 + Math.abs(stride) * .056;
-    const glance = reduceMotion ? 0 : walking ? Math.sin(gait * .38) * .3 : Math.sin(looking * 2.65) * .88;
+
+    const stride = walking && !reduceMotion ? Math.sin(gait) : 0;
+    torso.rotation.x = running ? .39 : .16 + Math.abs(stride) * .11;
+    torso.position.y = 1.13 + Math.abs(stride) * (running ? .11 : .05);
+    const glance = reduceMotion ? 0 : walking ? Math.sin(gait * .36) * .24 : Math.sin(looking * 1.73) * .72;
     head.rotation.y = T.MathUtils.damp(head.rotation.y, glance, 7, seconds);
     head.rotation.x = walking ? -.06 : .09;
     legs.forEach((leg, index) => {
       const swing = index === 0 ? stride : -stride;
-      leg.rotation.x = swing * .42;
-      leg.position.y = .81 + Math.max(0, -swing) * .12;
+      leg.rotation.x = swing * (running ? .71 : .39);
+      leg.position.y = .81 + Math.max(0, -swing) * (running ? .18 : .10);
     });
     arms.forEach((arm, index) => {
-      arm.rotation.x = -.61 + (index === 0 ? stride : -stride) * .28;
+      arm.rotation.x = -.53 + (index === 0 ? stride : -stride) * (running ? .55 : .24);
     });
-    sasquatchAnchor.point.copy(sasquatch.position).y = 1.73;
-    sasquatchAnchor.target.set(sasquatch.position.x, 0, 1.23);
+    sasquatchAnchor.point.copy(here).y += 1.74;
+    sasquatchAnchor.target.copy(here).y = 0;
   }
 
   function setTime(time: string) {
     const [hour, minute] = time.split(':').map(Number);
     const minutes = hour * 60 + minute;
     const { light, warmth } = daylightAt(time);
+    landscape.setLight(light);
+    hikers.setDaytime(minutes >= 9 * 60 && minutes < 18 * 60);
     const dusk = Math.max(0, Math.min(1, (minutes - 1050) / 65, (1220 - minutes) / 90));
     const warm = Math.max(warmth, dusk);
     sky.copy(nightSky).lerp(daySky, light).lerp(twilightSky, warm * .58);
@@ -303,15 +333,22 @@ export function coloradoTrail() {
       nextThought = 1.4;
       if (!isLate && speaker === sasquatch) thoughtRemaining = 0;
       wasNearSasquatch = false;
+      cooldown = fleeRemaining = 0;
     }
     activeSasquatch = sasquatch.visible = isLate;
   }
 
   function update(seconds: number, visitor: T.Vector3, reduceMotion: boolean) {
     timeInScene += seconds;
-    if (!reduceMotion) walkHerd(seconds);
-    if (activeSasquatch) sneak(seconds, reduceMotion);
-    const nearSasquatch = activeSasquatch && Math.abs(visitor.x - sasquatch.position.x) < 3.2;
+    if (!reduceMotion) {
+      walkHerd(seconds);
+      hikers.walk(seconds);
+    }
+    const viewingX = visitor.x < -7 ? -13.7 : visitor.x > 9 ? 15.4 : 2.55;
+    elkAnchor.target.set(viewingX, 0, 1.32);
+    elkAnchor.point.set(viewingX, .76, overlookFence + .2);
+    if (activeSasquatch) sneak(seconds, visitor, reduceMotion);
+    const nearSasquatch = activeSasquatch && cooldown === 0 && sasquatch.position.distanceToSquared(visitor) < 4.7 ** 2;
     if (nearSasquatch && !wasNearSasquatch) say(sasquatch, trailThoughts.sasquatch);
     wasNearSasquatch = nearSasquatch;
     thoughtRemaining -= seconds;
@@ -319,7 +356,7 @@ export function coloradoTrail() {
     if (nextThought <= 0) {
       if (nearSasquatch) say(sasquatch, trailThoughts.sasquatch);
       else {
-        const nearbyElk = herd.filter(({ animal }) => Math.abs(animal.position.x - visitor.x) < 4.9);
+        const nearbyElk = herd.filter(({ animal }) => animal.position.distanceToSquared(visitor) < 7 ** 2);
         if (nearbyElk.length) say(nearbyElk[Math.floor(Math.random() * nearbyElk.length)].animal, trailThoughts.elk);
         else nextThought = 1;
       }
@@ -331,7 +368,7 @@ export function coloradoTrail() {
   }
 
   const viewer = new T.Group();
-  viewer.position.set(.3, 0, 1.49);
+  viewer.position.set(.3, trailHeight(.3,1.49), 1.49);
   box(viewer, [.48,.55,.3], [0,.91,0], 0x9a6345);
   box(viewer, [.31,.31,.28], [0,1.32,0], 0xb98a6c);
   cylinder(viewer, .25, .06, 0, 1.47, 0, 0x5d6650);
@@ -345,15 +382,18 @@ export function coloradoTrail() {
   box(viewer, [.31,.115,.15], [0,1.33,-.19], 0x293746);
   scene.add(viewer);
 
-  const travel = travelCircle(scene, -5.62, trailZ);
+  const portalZ = overlookPath(overlookPortalX);
+  const travel = travelCircle(scene, overlookPortalX, portalZ, trailHeight(overlookPortalX, portalZ));
+  const spawnX = overlookPortalX + 1.22;
 
   setTime('14:00');
   return {
-    scene, travel, spawn: new T.Vector3(-4.49, 0, trailZ),
-    bounds: { left: -10.55, right: 10.55, back: .82, front: 4.45 },
-    obstacles: [],
+    scene, travel, spawn: new T.Vector3(spawnX, 0, overlookPath(spawnX)),
+    heightAt: trailHeight,
+    bounds: overlookBounds,
+    obstacles: landscape.obstacles,
     anchors: {
-      elk: { point: new T.Vector3(2.55, .76, .75), target: new T.Vector3(2.55, 0, 1.32), radius: 1.5 },
+      elk: elkAnchor,
       sasquatch: sasquatchAnchor,
       trailVictor: { point: new T.Vector3(.3, 1.65, 1.49), target: new T.Vector3(.3, 0, 2.07), radius: 1.24 },
     },

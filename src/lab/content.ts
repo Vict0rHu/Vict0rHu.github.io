@@ -19,6 +19,7 @@ export const objects = {
   elk: { label: 'Watch the elk', detail: 'The herd drifts across the meadow between bites of grass. The little robot stays on the trail.' },
   sasquatch: { label: 'Sasquatch', detail: 'He’s wearing a scarf. Apparently this makes him less terrifying.' },
   trailVictor: { label: 'Victor', detail: '“See the one by the aspen? It hasn’t moved in ten minutes.”' },
+  officeVictor: { label: 'Victor', detail: '“I changed the reset routine with Codex. Now I’m checking whether the xArm can return to the same pose every time.”' },
   mindPanda: { label: contactTitle },
   mindAoi: { label: 'AI Photoelastic Inspection' },
   mindTeleop: { label: 'Egocentric Teleoperation' },
@@ -52,7 +53,7 @@ export type RoomState = 'awake' | 'asleep' | 'away' | 'shower' | 'lounge';
 export const memoryPortals = { mindPanda: 'memory', mindAoi: 'aoi', mindTeleop: 'teleop' } as const;
 export type MindPortal = keyof typeof memoryPortals;
 export type MemoryScene = typeof memoryPortals[MindPortal];
-export type Destination = MemoryScene | 'trail' | 'mind';
+export type Destination = MemoryScene | Exclude<TravelDestination, 'room'> | 'mind';
 export const posterMemories = { poster: 'memory', teleopPoster: 'teleop', aoiPoster: 'aoi' } as const satisfies Record<keyof typeof posterProjects, MemoryScene>;
 export const memoryScenes = {
   memory: { title: contactTitle, objects: ['contactVictor'], project: CONTACT_ID },
@@ -90,11 +91,42 @@ export const teleopPowerThoughts = {
   checking: 'Okay… power first. Did that come loose?',
 };
 export const trailObjects: ObjectId[] = ['elk', 'sasquatch', 'trailVictor'];
+export const officeObjects: ObjectId[] = ['officeVictor'];
+export const overlookName = 'Rocky Mountain Overlook';
+
 export const travelDestinations = [
   { id: 'room', name: 'Victor’s room', detail: 'Workbench and research memories' },
-  { id: 'trail', name: 'Colorado foothills', detail: 'Elk overlook' },
+  { id: 'trail', name: overlookName, detail: 'Lakeside trail and elk viewing' },
+  { id: 'office', name: 'Office', detail: 'Victor’s workspace' },
 ] as const;
 export type TravelDestination = typeof travelDestinations[number]['id'];
+export const officeSecurityThoughts = {
+  chasing: 'Hey! The office is closed on weekends.',
+  caught: 'Nice try. See you Monday.',
+} as const;
+
+export const officeShifts = {
+  victor: { start: 9 * 60, end: 20 * 60 },
+  desks: [
+    { start: 9 * 60 + 1, end: 17 * 60 },
+    { start: 9 * 60 + 5, end: 18 * 60 },
+    { start: 9 * 60 + 3, end: 17 * 60 + 2 },
+    { start: 9 * 60 + 2, end: 17 * 60 + 1 },
+    { start: 9 * 60 + 7, end: 18 * 60 + 3 },
+    { start: 9 * 60 + 4, end: 17 * 60 + 3 },
+  ],
+  meeting: [
+    { start: 9 * 60 + 6, end: 17 * 60 + 4 },
+    { start: 9 * 60 + 8, end: 17 * 60 + 5 },
+    { start: 9 * 60 + 9, end: 17 * 60 + 6 },
+  ],
+};
+
+export const officeGreetings = {
+  arriving: ['Morning!', 'Hey, little bot!', 'Morning! Coffee yet?'],
+  leaving: ['See you tomorrow!', 'Have a good night!', 'See you around, little bot!'],
+  victor: { arriving: 'Morning! Ready to wake up the xArm?', leaving: 'I’m heading home. See you later!' },
+} as const;
 
 export const terminalLines = [
   '$ python replay_demo.py --scene panda',
@@ -195,4 +227,5 @@ export const trailThoughts = {
     'Why does everyone assume I like the dark?',
     'If we see a bear, you go first.',
   ],
+  startled: ['Nope. It saw me!', 'Was that thing sneaking up on me?', 'I am not built for jump scares.'],
 } as const;

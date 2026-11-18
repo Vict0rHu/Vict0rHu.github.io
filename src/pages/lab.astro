@@ -24,22 +24,24 @@ const home = withBase('/');
     <title>Robotics Lab — Victor Hu</title>
   </head>
   <body>
-    <main class="lab-shell" id="lab">
+    <main class="lab-shell" id="lab" data-scene="room">
       <header class="lab-header">
-        <a id="lab-home" class="lab-home" href={home}><span aria-hidden="true">←</span> Victor Hu</a>
-        <button id="lab-scene-exit" class="lab-inspection-close" type="button" aria-label="Return to Victor’s room" aria-keyshortcuts="Escape" hidden>ESC</button>
-        <nav aria-label="Portfolio links">
-          <a href={`${home}#portfolio`}>Projects</a>
-          <a href={SITE.resume ? withBase(SITE.resume) : `${home}#resume`}>Résumé</a>
-        </nav>
-      </header>
-      <section class="lab-heading" aria-labelledby="scene-title">
-        <div>
-          <p class="lab-eyebrow" id="lab-scene-label">Victor’s Robotics Lab</p>
-          <h1 id="scene-title">Victor’s room</h1>
+        <div class="lab-scene-heading">
+          <a id="lab-home" class="lab-home" href={home}><span aria-hidden="true">←</span> Victor Hu</a>
+          <button id="lab-scene-exit" class="lab-inspection-close" type="button" aria-label="Return to Victor’s room" aria-keyshortcuts="Escape" hidden>ESC</button>
+          <div class="lab-heading">
+            <p class="lab-eyebrow" id="lab-scene-label" hidden></p>
+            <h1 id="scene-title">Victor’s room</h1>
+          </div>
         </div>
-        <p class="lab-clock" id="lab-clock" hidden><span class="clock-dot"></span><span id="lab-time"></span> <span class="clock-zone">Denver</span></p>
-      </section>
+        <div class="lab-header-links">
+          <nav aria-label="Portfolio links">
+            <a href={`${home}#portfolio`}>Projects</a>
+            <a href={SITE.resume ? withBase(SITE.resume) : `${home}#resume`}>Résumé</a>
+          </nav>
+          <p class="lab-clock" id="lab-clock" hidden><span class="clock-dot"></span><span id="lab-time"></span> <span class="clock-zone">Denver</span></p>
+        </div>
+      </header>
       <section class="lab-stage" aria-label="Scene">
         <div id="lab-world" class="lab-world" hidden>
           <canvas id="lab-canvas" aria-label="3D room" tabindex="0"></canvas>

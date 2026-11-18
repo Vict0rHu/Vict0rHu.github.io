@@ -1,6 +1,7 @@
-import { memoryDialogueClosing, memoryVictorDetails, denverNow, formatTime, memoryPortals, memoryScenes, mindObjects, objects, posterMemories, posterProjects, roomSchedule, terminalLines, trailObjects } from './content';
+import { memoryDialogueClosing, memoryVictorDetails, denverNow, formatTime, memoryPortals, memoryScenes, mindObjects, objects, officeObjects, overlookName, posterMemories, posterProjects, roomSchedule, terminalLines, trailObjects } from './content';
 import type { Destination, MemoryEntry, MemoryScene, MindPortal, ObjectId, RoomState, TravelDestination } from './content';
 import type { createWorld, Direction } from './world';
+import { bindControlTouches } from './control-touches';
 
 const byId = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(`lab-${id}`) as T;
 const title = document.getElementById('scene-title')!;
@@ -23,8 +24,9 @@ const previewTime = byId<HTMLInputElement>('preview-time');
 const previewDay = byId<HTMLSelectElement>('preview-day');
 const dpad = byId('dpad');
 const travelDialog = byId<HTMLDialogElement>('travel');
+const travelButtons = Array.from(travelDialog.querySelectorAll<HTMLButtonElement>('[data-destination]'));
 const memoryObjects = new Set<ObjectId>(Object.values(memoryScenes).flatMap(scene => [...scene.objects]));
-const roomObjects = (Object.keys(objects) as ObjectId[]).filter(id => !memoryObjects.has(id) && !(id in memoryPortals) && !trailObjects.includes(id));
+const roomObjects = (Object.keys(objects) as ObjectId[]).filter(id => !memoryObjects.has(id) && !(id in memoryPortals) && !trailObjects.includes(id) && !officeObjects.includes(id));
 const params = new URLSearchParams(location.search);
 const testMode = import.meta.env.DEV || params.get('playtest') === '1';
 const buttons = new Map<ObjectId, HTMLButtonElement>();
@@ -52,6 +54,7 @@ function syncButtons() {
   const active: ObjectId[] = sceneMemory ? [...sceneMemory.objects] :
     destination === 'mind' ? [...mindObjects] :
     destination === 'trail' ? trailObjects.filter(id => id !== 'trailVictor' || onTrail) :
+    destination === 'office' ? officeObjects :
     roomObjects.filter(id => id !== 'entryClock' || !timeControlsEnabled);
   for (const [id, button] of buttons) {
     button.hidden = !active.includes(id);
@@ -78,10 +81,11 @@ function failedWorld() {
 async function enable3d() {
   try {
     const { createWorld } = await import('./world');
-    world = createWorld(canvas, byId('thought'), byId('portal-guide'), testMode && params.get('routine') === 'fast', inspect, closeAfterWalking, openTravel, ejectFromMind, failedWorld);
+    world = createWorld(canvas, byId('thought'), byId('portal-guide'), testMode && params.get('routine') === 'fast', inspect, closeAfterWalking, openTravel, ejectToRoom, failedWorld);
     world.setStatus(roomState, onTrail, roomLights);
     world.setLight(displayedTime);
     world.setClock(clockTime, clockDate, clockDay);
+    updateClock();
     syncButtons();
     worldElement.hidden = false;
     byId('move').hidden = false;
@@ -113,7 +117,10 @@ function updateClock() {
     clockTime = realTime;
     world?.setClock(clockTime, clockDate, clockDay);
   }
-  const { state, onTrail: weekendVisit, lights } = roomSchedule(minutes, mode === 'live' ? live.weekend : mode === 'weekend');
+  const weekend = mode === 'live' ? live.weekend : mode === 'weekend';
+  world?.setOfficeSchedule(minutes, weekend);
+  const { state, onTrail: weekendVisit, lights } = roomSchedule(minutes, weekend);
+  if (selected === 'officeVictor' && (weekend || state !== 'away')) close(panel.contains(document.activeElement));
   if (state === roomState && weekendVisit === onTrail && lights === roomLights) return;
   roomState = state;
   onTrail = weekendVisit;
@@ -204,10 +211,10 @@ function closeAfterWalking() {
 }
 
 function openTravel() {
-  if (transitioning || travelDialog.open || (destination && destination !== 'trail')) return;
+  if (transitioning || travelDialog.open || (destination && destination !== 'trail' && destination !== 'office')) return;
   close(false);
-  const current: TravelDestination = destination === 'trail' ? 'trail' : 'room';
-  for (const button of travelDialog.querySelectorAll<HTMLButtonElement>('[data-destination]')) {
+  const current: TravelDestination = destination ?? 'room';
+  for (const button of travelButtons) {
     const here = button.dataset.destination === current;
     button.disabled = here;
     if (here) button.setAttribute('aria-current', 'location');
@@ -217,18 +224,20 @@ function openTravel() {
   travelDialog.returnValue = '';
   travelDialog.showModal();
   world?.setPaused(true);
-  byId('travel-title').focus({ preventScroll: true });
+  travelButtons.find(button => !button.disabled)?.focus({ preventScroll: true });
 }
 
 function showScene(next?: Destination) {
   if (next) clockKnocks = 0;
   const isMemory = !!next && next in memoryScenes;
-  const sceneTitle = next === 'trail' ? 'Colorado foothills' : next === 'mind' ? 'Inside Victor’s mind' :
+  const sceneTitle = next === 'trail' ? overlookName : next === 'office' ? 'Office' : next === 'mind' ? 'Inside Victor’s mind' :
     next ? memoryScenes[next].title : 'Victor’s room';
-  const sceneLabel = next === 'trail' ? 'Elk overlook' : next === 'mind' ? (memoryEntry === 'dream' ? 'Victor’s dream' : 'Victor’s thoughts') :
-    next ? 'Reconstructed memory' : 'Victor’s Robotics Lab';
+  const sceneLabel = next === 'mind' ? (memoryEntry === 'dream' ? 'Victor’s dream' : 'Victor’s thoughts') :
+    isMemory ? 'Reconstructed memory' : '';
   title.textContent = sceneTitle;
-  byId('scene-label').textContent = sceneLabel;
+  const label = byId('scene-label');
+  label.textContent = sceneLabel;
+  label.hidden = !sceneLabel;
   canvas.setAttribute('aria-label', `3D ${sceneTitle}`);
   document.getElementById('lab')!.dataset.scene = isMemory ? 'memory' : next ?? 'room';
   sceneExit.hidden = next !== 'mind' && !isMemory;
@@ -330,13 +339,13 @@ function returnToRoom() {
   showScene();
 }
 
-async function ejectFromMind() {
-  if (destination !== 'mind' || ejecting) return;
+async function ejectToRoom(from: 'mind' | 'office') {
+  if (destination !== from || ejecting) return;
   ejecting = true;
   close();
   markerContainer.inert = dpad.inert = sceneExit.disabled = true;
   try {
-    await fadeScene(() => { if (!worldElement.hidden) returnToRoom(); }, { hold: 1400 });
+    await fadeScene(() => { if (!worldElement.hidden) returnToRoom(); }, { hold: from === 'mind' ? 1400 : 1050 });
   } finally {
     markerContainer.inert = dpad.inert = sceneExit.disabled = ejecting = false;
     world?.setPaused(false);
@@ -344,7 +353,7 @@ async function ejectFromMind() {
 }
 
 async function leaveScene() {
-  if (!destination || destination === 'trail' || transitioning || ejecting) return;
+  if (!destination || destination === 'trail' || destination === 'office' || transitioning || ejecting) return;
   if (!(destination in memoryScenes)) {
     returnToRoom();
     return;
@@ -375,18 +384,28 @@ for (const original of template.content.querySelectorAll<HTMLButtonElement>('but
   });
   buttons.set(id, button);
 }
-dpad.addEventListener('selectstart', event => event.preventDefault());
-dpad.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('selectstart', event => {
+  if (!(event.target instanceof Element && event.target.closest('#lab-panel p, #lab-terminal'))) event.preventDefault();
+});
+for (const surface of [canvas, dpad]) {
+  surface.addEventListener('contextmenu', event => event.preventDefault());
+}
 for (const button of dpad.querySelectorAll<HTMLButtonElement>('[data-move]')) {
   const direction = button.dataset.move as Direction;
+  bindControlTouches(button, {
+    start: touch => world?.setDirection(direction, `touch-${touch.identifier}`),
+    end: touch => world?.releaseDirection(`touch-${touch.identifier}`),
+  });
   button.addEventListener('pointerdown', event => {
-    if (event.button !== 0) return;
+    if (event.pointerType === 'touch' || event.button !== 0) return;
     event.preventDefault();
     button.setPointerCapture(event.pointerId);
     world?.setDirection(direction, `pointer-${event.pointerId}`);
   });
   for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture'] as const) {
-    button.addEventListener(eventName, event => world?.releaseDirection(`pointer-${event.pointerId}`));
+    button.addEventListener(eventName, event => {
+      if (event.pointerType !== 'touch') world?.releaseDirection(`pointer-${event.pointerId}`);
+    });
   }
   button.addEventListener('keydown', event => {
     if (event.key !== ' ' && event.key !== 'Enter') return;
@@ -437,10 +456,25 @@ action.addEventListener('click', () => {
   } else if (selected === 'victor' || selected === 'dream') void enter('mind', selected);
   else if (selected in posterMemories) void enter(posterMemories[selected as keyof typeof posterMemories]);
 });
+travelDialog.addEventListener('keydown', event => {
+  if (event.altKey || event.ctrlKey || event.metaKey) return;
+  const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight';
+  const backward = event.key === 'ArrowUp' || event.key === 'ArrowLeft';
+  if (!forward && !backward) return;
+  event.preventDefault();
+  const choices = travelButtons.filter(button => !button.disabled);
+  const current = choices.findIndex(button => button === document.activeElement);
+  const index = current < 0 ? (forward ? 0 : choices.length - 1) :
+    (current + (forward ? 1 : -1) + choices.length) % choices.length;
+  choices[index]?.focus({ preventScroll: true });
+});
+travelDialog.addEventListener('submit', event => {
+  if (event.submitter instanceof HTMLButtonElement && event.submitter.value === 'office') world?.unlockOfficeAudio();
+});
 travelDialog.addEventListener('close', () => {
   const choice = travelDialog.returnValue;
-  if (choice === 'trail' && !destination) void enter('trail');
-  else if (choice === 'room' && destination === 'trail') returnToRoom();
+  if ((choice === 'trail' || choice === 'office') && destination !== choice) void enter(choice);
+  else if (choice === 'room' && (destination === 'trail' || destination === 'office')) returnToRoom();
   else {
     world?.setPaused(false);
     if (!worldElement.hidden) canvas.focus({ preventScroll: true });

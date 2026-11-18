@@ -15,18 +15,18 @@ export function cylinder(parent: T.Object3D, radius: number, height: number, x: 
   return mesh;
 }
 
-export function travelCircle(scene: T.Scene, x: number, z: number) {
+export function travelCircle(scene: T.Scene, x: number, z: number, elevation = 0) {
   const radius = .88;
-  const pad = cylinder(scene, radius, .035, x, .024, z, 0x273e48);
+  const pad = cylinder(scene, radius, .035, x, elevation + .024, z, 0x273e48);
   const ring = new T.Mesh(new T.RingGeometry(radius - .08, radius, 48), new T.MeshBasicMaterial({ color: 0x81d9c4 }));
   ring.rotation.x = -Math.PI / 2;
-  ring.position.set(x, .052, z);
+  ring.position.set(x, elevation + .052, z);
   scene.add(ring);
   const fill = new T.Mesh(new T.CircleGeometry(radius - .11, 48), new T.MeshBasicMaterial({
     color: 0x85ddc9, transparent: true, opacity: .68, depthWrite: false,
   }));
   fill.rotation.x = -Math.PI / 2;
-  fill.position.set(x, .054, z);
+  fill.position.set(x, elevation + .054, z);
   fill.visible = false;
   scene.add(fill);
   return {
