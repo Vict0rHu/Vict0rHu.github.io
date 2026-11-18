@@ -10,6 +10,7 @@ export const objects = {
   robotBench: { label: 'Robotics workbench', detail: 'A compact SO-101-style follower arm with a rotating base, articulated joints, and a two-finger gripper.' },
   bathroom: { label: 'Bathroom', detail: 'The little robot checks the sink. No leaks to report.' },
   bathroomDoor: { label: 'Bathroom door', detail: 'Victor usually closes it behind him.' },
+  entryClock: { label: 'Knock' },
   terminal: { label: 'Running terminal', detail: 'A demo replay is still running on Victor’s laptop.' },
   backpack: { label: 'Victor’s backpack', detail: 'Empty. Not even a spare USB cable.' },
   victor: { label: 'Victor', detail: 'He glances over at the little robot.', action: 'Peek at his thoughts' },

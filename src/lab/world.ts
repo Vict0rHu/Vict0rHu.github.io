@@ -206,6 +206,7 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
     const elapsed = (time - (previous || time)) / 1000;
     const step = Math.min(elapsed, .04) * 3;
     previous = time;
+    room.clock.update(time, reducedMotion.matches);
     if (!paused && bedJump) stepBedJump(Math.min(elapsed, .08));
     else if (!paused && !bedMode) {
       dir.set(0,0,0);
@@ -422,6 +423,10 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
     if (paused || bedMode || bedJump || dragged) return;
     const bounds = canvas.getBoundingClientRect();
     ray.setFromCamera(new T.Vector2((event.clientX - bounds.left) / bounds.width * 2 - 1, 1 - (event.clientY - bounds.top) / bounds.height * 2), camera);
+    if (location === 'room' && markers.has('entryClock') && ray.intersectObject(room.clock.mount, true).length) {
+      activateMarker('entryClock');
+      return;
+    }
     const goal = ray.ray.intersectPlane(floor, new T.Vector3());
     if (goal) navigate(goal);
   });
@@ -472,7 +477,8 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
       room.setLight(time);
       trail?.setTime(time);
     },
-    setClock: room.setClock,
+    setClock: room.clock.setTime,
+    knockClock: room.clock.knock,
     reactToThoughtVisit: room.reactToThoughtVisit,
     setDirection: move,
     releaseDirection(token: string) { inputs.delete(token); },

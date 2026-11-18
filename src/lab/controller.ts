@@ -43,13 +43,16 @@ let transitioning = false;
 let ejecting = false;
 let dialogueTopic = 0;
 let logCount = 3;
+let timeControlsEnabled = testMode;
+let clockKnocks = 0;
+let lastClockKnock = 0;
 
 function syncButtons() {
   const sceneMemory = destination && memoryScenes[destination as MemoryScene];
   const active: ObjectId[] = sceneMemory ? [...sceneMemory.objects] :
     destination === 'mind' ? [...mindObjects] :
     destination === 'trail' ? trailObjects.filter(id => id !== 'trailVictor' || onTrail) :
-    [...roomObjects];
+    roomObjects.filter(id => id !== 'entryClock' || !timeControlsEnabled);
   for (const [id, button] of buttons) {
     button.hidden = !active.includes(id);
     button.inert = true;
@@ -82,7 +85,7 @@ async function enable3d() {
     syncButtons();
     worldElement.hidden = false;
     byId('move').hidden = false;
-    byId('preview').hidden = !testMode;
+    byId('preview').hidden = !timeControlsEnabled;
     world.setActive(true);
   } catch (error) {
     console.warn('Unable to initialize the Lab view.', error);
@@ -92,7 +95,7 @@ async function enable3d() {
 
 function updateClock() {
   const live = denverNow(new Date());
-  const mode = testMode ? previewDay.value : 'live';
+  const mode = timeControlsEnabled ? previewDay.value : 'live';
   if (mode === 'live') previewTime.value = String(live.minutes);
   const minutes = mode === 'live' ? live.minutes : previewTime.valueAsNumber;
   const time = formatTime(minutes);
@@ -140,6 +143,25 @@ function isMindPortal(id: ObjectId): id is MindPortal {
 
 function inspect(id: Exclude<ObjectId, 'bed'>) {
   if (selected === id || transitioning || ejecting || travelDialog.open) return;
+  if (id === 'entryClock') {
+    if (timeControlsEnabled) return;
+    const now = performance.now();
+    const next = now - lastClockKnock > 5000 ? 1 : clockKnocks + 1;
+    const unlock = next === 10;
+    const marker = buttons.get(id)!;
+    if (!world?.knockClock(() => {
+      marker.removeAttribute('aria-disabled');
+      if (unlock) void revealTimeControls();
+    })) return;
+    marker.setAttribute('aria-disabled', 'true');
+    clockKnocks = next;
+    lastClockKnock = now;
+    if (unlock) {
+      transitioning = true;
+      close(false);
+    }
+    return;
+  }
   if (isMindPortal(id)) {
     if (destination === 'mind') void enter(memoryPortals[id]);
     return;
@@ -199,6 +221,7 @@ function openTravel() {
 }
 
 function showScene(next?: Destination) {
+  if (next) clockKnocks = 0;
   const isMemory = !!next && next in memoryScenes;
   const sceneTitle = next === 'trail' ? 'Colorado foothills' : next === 'mind' ? 'Inside Victor’s mind' :
     next ? memoryScenes[next].title : 'Victor’s room';
@@ -219,13 +242,14 @@ function enteredThroughVictor() {
   return memoryEntry === 'victor' || memoryEntry === 'dream';
 }
 
-async function fadeScene(swap: () => void, { hold = 0, memory = false } = {}) {
+async function fadeScene(swap: () => void, { hold = 0, memory = false, clock = false } = {}) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
     if (hold) await new Promise(resolve => window.setTimeout(resolve, hold));
     swap();
     return;
   }
   sceneVeil.classList.toggle('is-memory', memory);
+  sceneVeil.classList.toggle('is-clock', clock);
   sceneVeil.hidden = false;
   const duration = 360;
   const cover = sceneVeil.animate([{ opacity: 0 }, { opacity: 1 }], {
@@ -242,6 +266,23 @@ async function fadeScene(swap: () => void, { hold = 0, memory = false } = {}) {
   } finally {
     cover.cancel();
     sceneVeil.hidden = true;
+    sceneVeil.classList.remove('is-clock');
+  }
+}
+
+async function revealTimeControls() {
+  try {
+    if (worldElement.hidden) return;
+    await fadeScene(() => {
+      if (worldElement.hidden) return;
+      timeControlsEnabled = true;
+      byId('preview').hidden = false;
+      syncButtons();
+      canvas.focus({ preventScroll: true });
+    }, { clock: true });
+  } finally {
+    transitioning = false;
+    world?.setPaused(false);
   }
 }
 
@@ -334,6 +375,8 @@ for (const original of template.content.querySelectorAll<HTMLButtonElement>('but
   });
   buttons.set(id, button);
 }
+dpad.addEventListener('selectstart', event => event.preventDefault());
+dpad.addEventListener('contextmenu', event => event.preventDefault());
 for (const button of dpad.querySelectorAll<HTMLButtonElement>('[data-move]')) {
   const direction = button.dataset.move as Direction;
   button.addEventListener('pointerdown', event => {

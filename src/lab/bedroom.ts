@@ -9,6 +9,7 @@ import { victorRoutine } from './routine';
 import { woodFloor } from './wood-floor';
 import { victorAvatar } from './victor-avatar';
 import { enclosedPrinter } from './enclosed-printer';
+import { entryClock } from './entry-clock';
 
 export function bedroom(fastRoutine: boolean) {
   const scene = new T.Scene();
@@ -125,36 +126,7 @@ export function bedroom(fastRoutine: boolean) {
     box(scene, [.28, .035, .065], [x, .51, shoeZ + .338], 0xc1b79e);
   }
 
-  const clockFace = document.createElement('canvas');
-  clockFace.width = 384;
-  clockFace.height = 144;
-  const clockInk = clockFace.getContext('2d');
-  const clockTexture = new T.CanvasTexture(clockFace);
-  clockTexture.colorSpace = T.SRGBColorSpace;
-  const clockMount = new T.Group();
-  clockMount.position.set(shoeX, .97, shoeZ - .05);
-  scene.add(clockMount);
-  box(clockMount, [1.5, .64, .12], [0, 0, 0], 0x212735);
-  const clock = new T.Mesh(new T.PlaneGeometry(1.42, .55), new T.MeshBasicMaterial({
-    map: clockTexture, toneMapped: false,
-  }));
-  clock.position.z = .065;
-  clockMount.add(clock);
-
-  function setClock(time: string, date: string, weekday: string) {
-    if (!clockInk) return;
-    clockInk.fillStyle = '#14242d';
-    clockInk.fillRect(0, 0, clockFace.width, clockFace.height);
-    clockInk.strokeStyle = '#2f5a5a';
-    clockInk.strokeRect(8, 8, 368, 128);
-    clockInk.fillStyle = '#94efda';
-    clockInk.font = 'bold 65px monospace';
-    clockInk.fillText(time, 20, 77);
-    clockInk.fillStyle = '#86b6b9';
-    clockInk.font = '28px monospace';
-    clockInk.fillText(`${date}  ${weekday.toUpperCase()}`, 22, 118);
-    clockTexture.needsUpdate = true;
-  }
+  const clock = entryClock(scene, shoeX, shoeZ - .05);
 
   function windowAt(parent: T.Object3D, x: number, z: number, width: number, rotation = 0) {
     const frame = new T.Group();
@@ -514,6 +486,7 @@ export function bedroom(fastRoutine: boolean) {
     robotBench: { point: new T.Vector3(-6.48, 1.8, 2.91), target: new T.Vector3(-5.52, 0, 2.81), radius: 1.17 },
     bathroom: { point: new T.Vector3(6.85, 1.64, sinkZ), target: new T.Vector3(6.05, 0, .58), radius: 1.14 },
     bathroomDoor: { point: new T.Vector3(bathDoorX, casingTop + .05, bathEdge), target: new T.Vector3(bathDoorX, 0, bathEdge), radius: 1.31 },
+    entryClock: { point: clock.mount.position.clone().add(new T.Vector3(0, .34, .07)), target: new T.Vector3(shoeX, 0, shoeZ + .77), radius: 1.65 },
   };
   const bedActions = { hide: bedHiding, nap: bedNap, exit: anchors.bed.target };
   const obstacles = [
@@ -741,8 +714,8 @@ export function bedroom(fastRoutine: boolean) {
   }
   setLight('01:00');
   return {
-    scene, anchors, bounds, travel, spawn, bedActions, setClock, setLight, setStatus, orientWalls, updateVictor,
-    bathroomDoor: bathDoor,
+    scene, anchors, bounds, travel, spawn, bedActions, setLight, setStatus, orientWalls, updateVictor,
+    bathroomDoor: bathDoor, clock,
     get obstacles() { return bathDoor.blocked ? obstaclesWithDoor : obstaclesWithOpenDoor; },
     bathroomExitRoute(visitor: T.Vector3) { return walkingRoute(space, visitor, bathroomExit); },
     setBlanketLump(visible: boolean) { blanketLump.visible = visible; },
