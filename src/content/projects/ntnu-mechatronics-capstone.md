@@ -4,6 +4,10 @@ filter: "Competitions"
 category: "Award · 1st Place"
 date: "2023"
 role: "Team Member"
+labAward:
+  name: "Mechatronics Capstone"
+  issuer: "National Taiwan Normal University"
+  contribution: "Worked on sensing, signal processing, the prediction model, and operator software for our smart-manufacturing system."
 order: 12
 thumbnail: "/assets/img/portfolio/ntnu-mechatronics-capstone/cover.jpg"
 description: "First place at the NTNU Mechatronic Capstone Competition (2023) for an AI-based smart-manufacturing quality-prediction system."

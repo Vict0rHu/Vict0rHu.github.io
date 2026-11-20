@@ -1,7 +1,11 @@
-import { memoryDialogueClosing, memoryVictorDetails, denverNow, formatTime, memoryPortals, memoryScenes, mindObjects, objects, officeObjects, overlookName, posterMemories, posterProjects, roomSchedule, terminalLines, trailObjects } from './content';
+import { memoryDialogueClosing, memoryVictorDetails, denverNow, formatTime, memoryPortals, memoryScenes, mindObjects, objects, officeObjects, overlookName, roomSchedule, terminalLines, trailObjects } from './content';
 import type { Destination, MemoryEntry, MemoryScene, MindPortal, ObjectId, RoomState, TravelDestination } from './content';
 import type { createWorld, Direction } from './world';
 import { bindControlTouches } from './control-touches';
+import { createPosterBrowser } from './poster-browser';
+import { createGraduationPhoto } from './graduation-photo';
+import { unrExchangeClosing } from './unr-content';
+import { createAwardsBrowser } from './awards-browser';
 
 const byId = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(`lab-${id}`) as T;
 const title = document.getElementById('scene-title')!;
@@ -12,7 +16,6 @@ const template = byId<HTMLTemplateElement>('objects');
 const panel = byId('panel');
 const panelTitle = byId('panel-title');
 const description = byId('panel-description');
-const poster = byId('poster');
 const terminal = byId('terminal');
 const action = byId<HTMLButtonElement>('action');
 const actionLabel = byId('action-label');
@@ -23,6 +26,7 @@ const home = byId('home');
 const previewTime = byId<HTMLInputElement>('preview-time');
 const previewDay = byId<HTMLSelectElement>('preview-day');
 const dpad = byId('dpad');
+const shell = document.getElementById('lab')!;
 const travelDialog = byId<HTMLDialogElement>('travel');
 const travelButtons = Array.from(travelDialog.querySelectorAll<HTMLButtonElement>('[data-destination]'));
 const memoryObjects = new Set<ObjectId>(Object.values(memoryScenes).flatMap(scene => [...scene.objects]));
@@ -48,6 +52,48 @@ let logCount = 3;
 let timeControlsEnabled = testMode;
 let clockKnocks = 0;
 let lastClockKnock = 0;
+const graduationPhoto = createGraduationPhoto(byId<HTMLDialogElement>('photo-viewer'), () => close());
+const posterBrowser = createPosterBrowser(byId('poster-browser'), {
+  select(index, instant) {
+    shell.dataset.browsing = 'posters';
+    world?.setPosterWall(index, instant);
+  },
+  close() {
+    delete shell.dataset.browsing;
+    world?.setPosterWall();
+    canvas.focus({ preventScroll: true });
+  },
+  enter(memory) { void enter(memory, 'posters'); },
+});
+const awardsBrowser = createAwardsBrowser(byId('awards-browser'), {
+  select(index, instant) {
+    shell.dataset.browsing = 'awards';
+    world?.setAwards(index, instant);
+  },
+  close() {
+    delete shell.dataset.browsing;
+    world?.setAwards();
+    canvas.focus({ preventScroll: true });
+  },
+});
+
+function openAwards(index?: number) {
+  if (destination || transitioning || ejecting || travelDialog.open || posterBrowser.active) return;
+  if (awardsBrowser.active) awardsBrowser.select(index ?? awardsBrowser.selection);
+  else {
+    close(false);
+    awardsBrowser.open(index);
+  }
+}
+
+function openPosterWall(index?: number) {
+  if (destination || transitioning || ejecting || travelDialog.open || awardsBrowser.active) return;
+  if (posterBrowser.active) posterBrowser.select(index ?? posterBrowser.selection);
+  else {
+    close(false);
+    posterBrowser.open(index);
+  }
+}
 
 function syncButtons() {
   const sceneMemory = destination && memoryScenes[destination as MemoryScene];
@@ -67,6 +113,9 @@ function syncButtons() {
 }
 
 function failedWorld() {
+  posterBrowser.suspend();
+  awardsBrowser.suspend();
+  delete shell.dataset.browsing;
   world?.setActive(false);
   if (travelDialog.open) travelDialog.close();
   close(false);
@@ -81,7 +130,7 @@ function failedWorld() {
 async function enable3d() {
   try {
     const { createWorld } = await import('./world');
-    world = createWorld(canvas, byId('thought'), byId('portal-guide'), testMode && params.get('routine') === 'fast', inspect, closeAfterWalking, openTravel, ejectToRoom, failedWorld);
+    world = createWorld(canvas, byId('thought'), byId('portal-guide'), testMode && params.get('routine') === 'fast', inspect, closeAfterWalking, openTravel, ejectToRoom, failedWorld, openPosterWall, openAwards);
     world.setStatus(roomState, onTrail, roomLights);
     world.setLight(displayedTime);
     world.setClock(clockTime, clockDate, clockDay);
@@ -150,6 +199,14 @@ function isMindPortal(id: ObjectId): id is MindPortal {
 
 function inspect(id: Exclude<ObjectId, 'bed'>) {
   if (selected === id || transitioning || ejecting || travelDialog.open) return;
+  if (id === 'posterWall') {
+    openPosterWall();
+    return;
+  }
+  if (id === 'awards') {
+    openAwards();
+    return;
+  }
   if (id === 'entryClock') {
     if (timeControlsEnabled) return;
     const now = performance.now();
@@ -175,19 +232,16 @@ function inspect(id: Exclude<ObjectId, 'bed'>) {
   }
   selected = id;
   world?.setInspection(id);
+  if (id === 'unrPhoto') {
+    panel.hidden = true;
+    world?.setPaused(true);
+    graduationPhoto.open();
+    return;
+  }
   const item = objects[id];
   if (id in memoryVictorDetails) dialogueTopic = 0;
   panelTitle.textContent = item.label;
   description.textContent = item.detail;
-  poster.hidden = !(id in posterProjects);
-  for (const entry of poster.querySelectorAll<HTMLElement>('[data-poster]')) {
-    entry.hidden = entry.dataset.poster !== id;
-    if (!entry.hidden) {
-      const image = entry.querySelector('img')!;
-      if (!image.getAttribute('src')) image.src = image.dataset.src!;
-    }
-  }
-  byId('awards').hidden = id !== 'awards';
   terminal.hidden = id !== 'terminal';
   if (!terminal.hidden) terminalOutput();
   for (const link of memoryLinks) link.hidden = true;
@@ -199,6 +253,7 @@ function inspect(id: Exclude<ObjectId, 'bed'>) {
 }
 
 function close(refocus = true) {
+  graduationPhoto.close();
   panel.hidden = true;
   selected = undefined;
   world?.setInspection();
@@ -241,7 +296,8 @@ function showScene(next?: Destination) {
   canvas.setAttribute('aria-label', `3D ${sceneTitle}`);
   document.getElementById('lab')!.dataset.scene = isMemory ? 'memory' : next ?? 'room';
   sceneExit.hidden = next !== 'mind' && !isMemory;
-  sceneExit.setAttribute('aria-label', isMemory && enteredThroughVictor() ? 'Return to Victor’s mind' : 'Return to Victor’s room');
+  sceneExit.setAttribute('aria-label', isMemory && enteredThroughVictor() ? 'Return to Victor’s mind' :
+    isMemory && memoryEntry === 'posters' ? 'Return to the poster wall' : 'Return to Victor’s room');
   home.hidden = !!next;
   syncButtons();
   canvas.focus({ preventScroll: true });
@@ -298,6 +354,7 @@ async function revealTimeControls() {
 async function enter(next: Destination, entry?: MemoryEntry) {
   if (transitioning || ejecting) return;
   transitioning = true;
+  if (posterBrowser.active) posterBrowser.setBusy(true);
   world?.setPaused(true);
   action.disabled = true;
   actionLabel.textContent = 'Opening…';
@@ -315,6 +372,9 @@ async function enter(next: Destination, entry?: MemoryEntry) {
   close(false);
   const show = () => {
     if (worldElement.hidden) return;
+    posterBrowser.suspend();
+    awardsBrowser.suspend();
+    delete shell.dataset.browsing;
     destination = next;
     if (entry) memoryEntry = entry;
     world?.show(next, entry === 'dream');
@@ -337,6 +397,7 @@ function returnToRoom() {
   world?.showRoom();
   if (entry === 'victor' && (roomState === 'awake' || roomState === 'lounge')) world?.reactToThoughtVisit();
   showScene();
+  if (entry === 'posters') posterBrowser.open(undefined, true);
 }
 
 async function ejectToRoom(from: 'mind' | 'office') {
@@ -446,7 +507,7 @@ action.addEventListener('click', () => {
       actionLabel.textContent = 'Continue';
     } else if (dialogueTopic === topics.length) {
       dialogueTopic++;
-      description.textContent = memoryDialogueClosing.victor;
+      description.textContent = selected === 'unrSolar' ? unrExchangeClosing : memoryDialogueClosing.victor;
       actionLabel.textContent = memoryDialogueClosing.robot;
       for (const link of memoryLinks) link.hidden = link.dataset.memoryProject !== destination;
     } else {
@@ -454,7 +515,6 @@ action.addEventListener('click', () => {
       world?.sayAsRobot(memoryDialogueClosing.robot);
     }
   } else if (selected === 'victor' || selected === 'dream') void enter('mind', selected);
-  else if (selected in posterMemories) void enter(posterMemories[selected as keyof typeof posterMemories]);
 });
 travelDialog.addEventListener('keydown', event => {
   if (event.altKey || event.ctrlKey || event.metaKey) return;

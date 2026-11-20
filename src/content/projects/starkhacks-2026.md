@@ -4,6 +4,10 @@ filter: "Competitions"
 category: "Hackathon · Physical AI"
 date: "2026"
 role: "System Integration"
+labAward:
+  name: "StarkHacks · GUARD.IAM"
+  issuer: "Purdue University · Microsoft and AMD tracks"
+  contribution: "Led system integration across the dual-arm rover, sensors, actuators, and edge AI during the 36-hour build."
 order: 8
 thumbnail: "/assets/img/portfolio/starkhacks-2026/cover.jpg"
 description: "Autonomous dual-arm rover with VR-takeover teleoperation and an on-board VLA model, built in 36 hours. 2nd place Microsoft Track, 3rd Best Use of AMD."

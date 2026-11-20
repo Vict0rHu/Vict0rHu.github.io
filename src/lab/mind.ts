@@ -5,6 +5,7 @@ import { pandaArm, vrHeadset } from './project-models';
 import { box, cylinder } from './set';
 import { createMindGuard } from './mind-guard';
 import { createMindSpace } from './mind-space';
+import { nevadaN } from './unr-models';
 
 export function thoughtWorld() {
   const scene = new T.Scene();
@@ -26,10 +27,12 @@ export function thoughtWorld() {
     { id: 'mindAoi', x: -7.05, z: -1.6, y: .46, color: 0xc65d42, model: aoi.model, yaw: .38, height: 2.0, baseRadius: 1.16 },
     { id: 'mindPanda', x: 1.8, z: -6.4, y: .78, color: 0x147a6d, model: panda.model, yaw: .10, height: 1.75, baseRadius: 1.07 },
     { id: 'mindTeleop', x: 7.1, z: 3.45, y: .34, color: 0x7648c4, model: headset, yaw: -.46, height: 1.2, baseRadius: 1.07 },
+    { id: 'mindUnr', x: -8.3, z: -6.45, y: .45, color: 0xc29a55, model: nevadaN(), yaw: .18, height: 1.62, baseRadius: 1.1 },
   ] as const;
   const anchors = {} as Record<MindPortal, { point: T.Vector3; target: T.Vector3; radius: number }>;
   const obstacles = [];
   aoi.model.scale.setScalar(.91);
+  portals[3].model.scale.setScalar(.68);
   for (const { id, x, z, y, color, model, yaw, height, baseRadius } of portals) {
     const halfWidth = baseRadius - .16;
     obstacles.push({ left: x - halfWidth, right: x + halfWidth, back: z - halfWidth, front: z + halfWidth });

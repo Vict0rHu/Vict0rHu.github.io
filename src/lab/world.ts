@@ -6,6 +6,7 @@ import { bedPrompts, memoryScenes } from './content';
 import type { Destination, ObjectId, RoomState, MemoryScene } from './content';
 import { officeAlarm } from './office-alarm';
 import { bindControlTouches } from './control-touches';
+import { collectionView } from './collection-view';
 
 type Markers = Map<ObjectId, HTMLButtonElement>;
 type Anchor = { point: T.Vector3; target: T.Vector3; radius?: number };
@@ -25,7 +26,7 @@ const bedJumpDuration = .58;
 const tapHoldLimit = 500;
 type BedMode = 'hide' | 'nap';
 
-export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElement, portalGuide: HTMLElement, fastRoutine: boolean, inspect: (id: Exclude<ObjectId, 'bed'>) => void, leaveInspection: () => void, showTravel: () => void, caught: (scene: 'mind' | 'office') => void, unavailable: () => void) {
+export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElement, portalGuide: HTMLElement, fastRoutine: boolean, inspect: (id: Exclude<ObjectId, 'bed'>) => void, leaveInspection: () => void, showTravel: () => void, caught: (scene: 'mind' | 'office') => void, unavailable: () => void, selectPoster: (index: number) => void, selectAward: (index: number) => void) {
   const renderer = new T.WebGLRenderer({ canvas, antialias: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.toneMapping = T.ACESFilmicToneMapping;
@@ -34,9 +35,11 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
   const overlookCamera = new T.PerspectiveCamera(63, 1, .1, 150);
   let camera: T.Camera = indoorCamera;
   const room = bedroom(fastRoutine);
+  const closeup = collectionView();
   let displayedThought = '';
   type MemoryStage = ReturnType<typeof import('./memory').contactLab> |
-    ReturnType<typeof import('./memory').opticalBench> | ReturnType<typeof import('./memory').teleopBench>;
+    ReturnType<typeof import('./memory').opticalBench> | ReturnType<typeof import('./memory').teleopBench> |
+    ReturnType<typeof import('./unr-memory').unrExchange>;
   const memories: Partial<Record<MemoryScene, MemoryStage>> = {};
   let mind: ReturnType<typeof import('./mind').thoughtWorld> | undefined;
   let trail: ReturnType<typeof import('./trail').mountainOverlook> | undefined;
@@ -107,6 +110,10 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
     const current = memories.teleop;
     return current && 'updateRig' in current ? current : undefined;
   };
+  const unrStage = () => {
+    const current = memories.unr;
+    return current && 'immersion' in current ? current : undefined;
+  };
   const stage = () => location === 'mind' && mind ? mind : location === 'trail' && trail ? trail :
     location === 'office' && office ? office : memoryStage() ?? room;
   const travelArea = () => location === 'room' ? room.travel : location === 'trail' ? trail?.travel : location === 'office' ? office?.travel : undefined;
@@ -151,7 +158,7 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
   const withinReach = (anchor: Anchor, margin = 0) =>
     anchor.target.distanceTo(robot.position) <= (anchor.radius ?? defaultReach) + margin;
   function activateMarker(id: ObjectId) {
-    if (paused || bedJump || escortPath.length) return;
+    if (paused || closeup.engaged || bedJump || escortPath.length) return;
     if (bedMode) {
       if (id === 'bed') leaveBed();
       return;
@@ -213,8 +220,9 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
       return;
     }
     camera = indoorCamera;
+    indoorCamera.layers.set(0);
     const halfHeight = narrow ? Math.min(8.6, 5.06 / aspect) : Math.max(5.75, 8.48 / aspect);
-    indoorCamera.zoom = location === 'office' ? (narrow ? .87 : .70) : 1;
+    indoorCamera.zoom = location === 'unr' ? (narrow ? .70 : .78) : location === 'office' ? (narrow ? .87 : .70) : 1;
     indoorCamera.left = -halfHeight * aspect;
     indoorCamera.right = -indoorCamera.left;
     indoorCamera.top = halfHeight;
@@ -231,8 +239,8 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
     const step = Math.min(elapsed, .04) * 3;
     previous = time;
     room.clock.update(time, reducedMotion.matches);
-    if (!paused && bedJump) stepBedJump(Math.min(elapsed, .08));
-    else if (!paused && !bedMode) {
+    if (!paused && !closeup.engaged && bedJump) stepBedJump(Math.min(elapsed, .08));
+    else if (!paused && !closeup.engaged && !bedMode) {
       dir.set(0,0,0);
       for (const move of new Set(inputs.values())) {
         const [x,z] = moveVectors[move];
@@ -267,7 +275,7 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
       room.setStatus(pendingHome.state, pendingHome.lights);
       pendingHome = undefined;
     }
-    const visitor = location === 'room' && !paused ? robot.position : undefined;
+    const visitor = location === 'room' && !paused && !closeup.engaged ? robot.position : undefined;
     const { escort } = room.updateVictor(Math.min(elapsed, .15), visitor, reducedMotion.matches, escortPath.length > 0);
     if (location === 'room' && bedMode && !bedJump && (bedMode === 'hide' ? room.bedReached : !room.asleep)) {
       room.reactToBedGuest(bedMode === 'nap');
@@ -280,17 +288,31 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
     }
     const openAnchor = inspected && anchorFor(inspected);
     if (!paused && inspected && (!openAnchor || !withinReach(openAnchor, inspectionExitMargin))) leaveInspection();
-    if (!paused) updateTravel(time);
+    if (!paused && !closeup.engaged) updateTravel(time);
 
     const follow = location === 'mind' ? .88 : narrow ? .84 : location === 'room' ? .27 : location === 'aoi' || location === 'teleop' ? .64 : .48;
     const lead = location === 'memory' ? 1.55 : location === 'room' && !narrow ? .8 : location === 'room' ? 1.65 : .85;
     const outdoors = location === 'trail';
-    const groundHeight = outdoors ? trail?.heightAt(robot.position.x, robot.position.z) ?? 0 : 0;
+    const groundHeight = outdoors ? trail?.heightAt(robot.position.x, robot.position.z) ?? 0 : location === 'unr' ? unrStage()?.heightAt(robot.position.x, robot.position.z) ?? 0 : 0;
     const horizontalFollow = outdoors ? .84 : location === 'office' && !narrow ? .09 : follow;
     const viewDepth = outdoors ? robot.position.z - (narrow ? 2.75 : 3.6) :
       location === 'office' && !narrow ? robot.position.z * .14 + .38 : robot.position.z * follow - lead;
     target.set(robot.position.x * horizontalFollow, outdoors ? 1.10 + groundHeight : .62, viewDepth);
+    const unr = location === 'unr' ? unrStage() : undefined;
+    if (unr) {
+      const updateSeconds = paused ? 0 : Math.min(elapsed,.08);
+      unr.update(updateSeconds,robot.position,reducedMotion.matches);
+      // Crossing memories changes the atmosphere, never the camera's framing.
+      const lead = narrow ? 1.65 : 1.2;
+      target.set(robot.position.x - Math.sin(yaw) * lead,2.1 + groundHeight,
+        robot.position.z - Math.cos(yaw) * lead);
+    }
     offset.setFromSphericalCoords(outdoors ? 19.5 : 18, pitch, yaw);
+    if (location === 'room') {
+      closeup.apply(indoorCamera, target, offset, Math.min(elapsed, .08), canvas.clientWidth, canvas.clientHeight, reducedMotion.matches);
+      room.posterWall.update(Math.min(elapsed, .08), reducedMotion.matches);
+      room.awards.update(Math.min(elapsed, .08), reducedMotion.matches);
+    }
     camera.position.copy(target).add(offset);
     camera.lookAt(target);
     if (location === 'room') room.orientWalls(camera.position, robot.position);
@@ -314,7 +336,8 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
     placeMarkers();
     placePortalGuide();
     if (robotReply && (time >= robotReply.until || robotReply.scene !== location)) robotReply = undefined;
-    if (robotReply) {
+    if (closeup.engaged) placeThought('');
+    else if (robotReply) {
       robotReplyPoint.copy(robot.position).y += facing.position.y + .83;
       placeThought(robotReply.text, robotReplyPoint);
     } else if (location === 'room') placeThought(room.thought, room.anchors.victor.point);
@@ -327,6 +350,7 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
       placeThought(text, point);
     }
     else if (teleop) placeThought(teleop.thought(), teleop.anchors.teleopVictor.point);
+    else if (unr) placeThought(unr.thought.text,unr.thought.point);
     else placeThought(trailThought?.text ?? '', trailThought?.point);
   }
 
@@ -386,7 +410,7 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
     const visibleMarkers: { id: ObjectId; button: HTMLButtonElement; anchor: Anchor; distance: number }[] = [];
     for (const [id, button] of markers) {
       const anchor = anchorFor(id);
-      const visible = !bedJump && !escortPath.length && !!anchor && (bedMode ? id === 'bed' : withinReach(anchor));
+      const visible = !closeup.engaged && !bedJump && !escortPath.length && !!anchor && (bedMode ? id === 'bed' : withinReach(anchor));
       if (id === 'bed' && visible) {
         const label = button.querySelector('.hotspot-label')!;
         const text = bedMode ? bedPrompts.exit : room.asleep ? bedPrompts.nap : bedPrompts.hide;
@@ -429,7 +453,7 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
   }
 
   function move(direction: Direction, token: string) {
-    if (!active || paused || bedMode || bedJump || escortPath.length) return;
+    if (!active || paused || closeup.engaged || bedMode || bedJump || escortPath.length) return;
     path = [];
     inputs.set(token, direction);
     if (look?.touchStarted !== undefined && token.startsWith('touch-')) look.canTap = false;
@@ -456,7 +480,7 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
   });
   canvas.addEventListener('webglcontextlost', (event) => { event.preventDefault(); unavailable(); });
   function startLook(token: string, x: number, y: number, touchStarted?: number) {
-    if (!active || paused || bedJump || escortPath.length || look) return false;
+    if (!active || paused || bedJump || escortPath.length || look || closeup.engaged && closeup.selection === undefined) return false;
     const canTap = touchStarted === undefined || !Array.from(inputs.keys()).some(key => key.startsWith('touch-'));
     look = { token, x, y, yaw, pitch, dragged: false, canTap, touchStarted };
     return true;
@@ -468,6 +492,7 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
     const dy = y - look.y;
     if (!look.dragged && Math.hypot(dx, dy) < 7) return;
     look.dragged = true;
+    if (closeup.selection !== undefined) return;
     yaw = T.MathUtils.clamp(look.yaw - dx * .008, -.82, 1.03);
     pitch = T.MathUtils.clamp(look.pitch - dy * .006, .45, location === 'trail' ? 1.45 : 1.14);
   }
@@ -480,15 +505,29 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
       (touchStarted !== undefined && performance.now() - touchStarted >= tapHoldLimit)) return;
     const bounds = canvas.getBoundingClientRect();
     ray.setFromCamera(new T.Vector2((x - bounds.left) / bounds.width * 2 - 1, 1 - (y - bounds.top) / bounds.height * 2), camera);
+    if (location === 'room') {
+      const award = room.awards.pick(ray);
+      if (award !== undefined && (closeup.kind === 'awards' && closeup.selection !== undefined || !closeup.engaged && withinReach(room.anchors.awards))) {
+        selectAward(award);
+        return;
+      }
+      const index = room.posterWall.pick(ray);
+      if (index !== undefined && (closeup.kind === 'posters' && closeup.selection !== undefined || !closeup.engaged && withinReach(room.anchors.posterWall))) {
+        selectPoster(index);
+        return;
+      }
+      if (closeup.engaged) return;
+    }
     if (location === 'room' && markers.has('entryClock') && ray.intersectObject(room.clock.mount, true).length) {
       activateMarker('entryClock');
       return;
     }
     const goal = ray.ray.intersectPlane(floor, new T.Vector3());
     if (!goal) return;
-    if (location === 'trail' && trail && Math.abs(ray.ray.direction.y) > .06) {
+    const terrain = location === 'trail' ? trail : location === 'unr' ? unrStage() : undefined;
+    if (terrain && Math.abs(ray.ray.direction.y) > .06) {
       for (let step = 0; step < 3; step++) {
-        const height = trail.heightAt(goal.x, goal.z);
+        const height = terrain.heightAt(goal.x, goal.z);
         ray.ray.at((height - ray.ray.origin.y) / ray.ray.direction.y, goal);
       }
       goal.y = 0;
@@ -519,7 +558,7 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
   }
   window.addEventListener('keydown', (event) => {
     const element = event.target;
-    if (!active || paused || bedJump || escortPath.length || event.altKey || event.metaKey || event.ctrlKey ||
+    if (!active || paused || closeup.engaged || bedJump || escortPath.length || event.altKey || event.metaKey || event.ctrlKey ||
       (element instanceof HTMLElement && element.closest('select, input, textarea, [contenteditable=true]'))) return;
     const key = event.key.toLowerCase();
     const direction = keyboardDirections[key];
@@ -548,6 +587,18 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
     setInspection(id?: ObjectId) {
       inspected = id;
       if (id) robotReply = undefined;
+    },
+    setPosterWall(index?: number, instant = false) {
+      clearMotion();
+      closeup.select('posters', index, instant);
+      room.posterWall.select(index);
+      if (instant) room.posterWall.update(0, true);
+    },
+    setAwards(index?: number, instant = false) {
+      clearMotion();
+      closeup.select('awards', index, instant);
+      room.awards.select(index);
+      if (instant) room.awards.update(0, true);
     },
     sayAsRobot(text: string) { robotReply = { text, until: performance.now() + 2200, scene: location }; },
     setMarkers(value: Markers) { markers = value; nearby = undefined; },
@@ -587,10 +638,13 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
         office.setSchedule(officeMinutes, officeWeekend);
       }
       if (next in memoryScenes && !memories[next as MemoryScene]) {
-        const { contactLab, opticalBench, teleopBench } = await import('./memory');
-        const factories = { memory: contactLab, aoi: opticalBench, teleop: teleopBench };
-        const key = next as MemoryScene;
-        memories[key] = factories[key]();
+        if (next === 'unr') memories.unr = (await import('./unr-memory')).unrExchange();
+        else {
+          const { contactLab, opticalBench, teleopBench } = await import('./memory');
+          const factories = { memory: contactLab, aoi: opticalBench, teleop: teleopBench };
+          const key = next as Exclude<MemoryScene,'unr'>;
+          memories[key] = factories[key]();
+        }
       }
       if (next === 'trail' && !trail) {
         trail = (await import('./trail')).mountainOverlook();
@@ -610,9 +664,14 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
       }
       resetTravel();
       travelUsed = false;
+      closeup.select('posters', undefined, true);
+      room.posterWall.select();
+      room.posterWall.update(0, true);
+      room.awards.select();
+      room.awards.update(0, true);
       location = next;
-      yaw = next === 'trail' ? .08 : next === 'office' ? -.25 : defaultYaw;
-      pitch = next === 'trail' ? 1.245 : next === 'mind' ? .94 : next === 'office' ? .84 : defaultPitch;
+      yaw = next === 'unr' ? 0 : next === 'trail' ? .08 : next === 'office' ? -.25 : defaultYaw;
+      pitch = next === 'unr' ? .98 : next === 'trail' ? 1.245 : next === 'mind' ? .94 : next === 'office' ? .84 : defaultPitch;
       destination.scene.add(robot);
       if (next === 'trail' && trail) robot.position.copy(trail.spawn);
       else if (next === 'office' && office) {
@@ -624,6 +683,11 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
         robot.position.copy(mind.spawn);
         mind.setDreaming(dreaming);
         mind.guard.reset();
+      }
+      else if (next === 'unr') {
+        const memory = unrStage()!;
+        robot.position.copy(memory.spawn);
+        memory.reset();
       }
       else {
         robot.position.set(.65, 0, next === 'aoi' ? 2.55 : 1.72);
@@ -642,6 +706,7 @@ export function createWorld(canvas: HTMLCanvasElement, thoughtBubble: HTMLElemen
       robot.position.copy(mindReturn);
       ({ yaw, pitch } = mindView);
       clearMotion();
+      resize();
     },
     showRoom() {
       if (location === 'room') return;

@@ -1,11 +1,11 @@
 import { MathUtils, Vector3 } from 'three';
 
-type Rectangle = { left: number; right: number; back: number; front: number };
-export type WalkableSpace = { bounds: Rectangle; obstacles: Rectangle[] };
+type Rectangle = { left: number; right: number; back: number; front: number; blocksAt?: (x: number, z: number) => boolean };
+export type WalkableSpace = { bounds: Rectangle; obstacles: Rectangle[]; contains?: (x: number, z: number) => boolean };
 
-export function canWalk({ bounds, obstacles }: WalkableSpace, x: number, z: number) {
-  return x >= bounds.left && x <= bounds.right && z >= bounds.back && z <= bounds.front && !obstacles.some(obstacle =>
-    x > obstacle.left - .16 && x < obstacle.right + .16 && z > obstacle.back - .16 && z < obstacle.front + .16);
+export function canWalk({ bounds, obstacles, contains }: WalkableSpace, x: number, z: number) {
+  return x >= bounds.left && x <= bounds.right && z >= bounds.back && z <= bounds.front && (!contains || contains(x, z)) && !obstacles.some(obstacle =>
+    x > obstacle.left - .16 && x < obstacle.right + .16 && z > obstacle.back - .16 && z < obstacle.front + .16 && (!obstacle.blocksAt || obstacle.blocksAt(x, z)));
 }
 
 export function walkingRoute(space: WalkableSpace, start: Vector3, end: Vector3): Vector3[] {

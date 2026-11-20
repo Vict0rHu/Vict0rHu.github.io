@@ -41,12 +41,12 @@ const profile = {
   '@context': 'https://schema.org',
   '@graph': [
     { '@type': 'WebSite', name: SITE.name, url: person.url },
-    { '@type': 'ProfilePage', url: person.url, mainEntity: person },
+    { '@type': 'ProfilePage', url: person.url, mainEntity: person, primaryImageOfPage: person.image },
   ],
 };
 ---
 
-<BaseLayout bodyClass="homepage" jsonLd={profile}>
+<BaseLayout bodyClass="homepage" jsonLd={profile} ogImage={SITE.profileImage}>
   <section id="about" class="home-intro site-wrap" aria-labelledby="hero">
     <h1 id="hero">{SITE.name}</h1>
     <p>I’m a robotics master’s student at Purdue and a research associate at AMD. I work on how robots use cameras and touch to handle objects. I publish as {SITE.publicationName}.</p>

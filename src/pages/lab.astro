@@ -1,16 +1,16 @@
 ---
 import { getEntry } from 'astro:content';
 import { SITE, withBase } from '../lib/site';
-import { CONTACT_ID, awardProjects, memoryScenes, objects, posterProjects, travelDestinations } from '../lab/content';
+import { CONTACT_ID, memoryScenes, objects, travelDestinations } from '../lab/content';
 import '../lab/lab.css';
+import { posterWallCopy } from '../lab/poster-wall-content';
+import { unrGraduationPhoto } from '../lab/unr-content';
+import { awardDisplays } from '../lab/awards-content';
 
-const posters = await Promise.all(Object.entries(posterProjects).map(async ([id, slug]) => {
-  const { data } = await getEntry('projects', slug);
-  return { id, slug, title: data.title, image: withBase(data.thumbnail) };
-}));
-const awards = await Promise.all(awardProjects.map(async (slug) => {
-  const { data } = await getEntry('projects', slug);
-  return { slug, title: data.title };
+const awards = await Promise.all(awardDisplays.map(async ({ project, work, results }) => {
+  const { data } = await getEntry('projects', project);
+  if (!data.labAward) throw new Error(`Missing Lab award details: ${project}`);
+  return { ...data.labAward, year: data.date, role: data.role, results: data.highlights.slice(0, results), work };
 }));
 const projectUrl = withBase(`/portfolio/${CONTACT_ID}/`);
 const home = withBase('/');
@@ -62,25 +62,50 @@ const home = withBase('/');
             <button id="lab-close" class="lab-inspection-close" aria-label="Close inspection" aria-keyshortcuts="Escape Space" type="button">ESC</button>
           </div>
           <p id="lab-panel-description" aria-live="polite"></p>
-          <div id="lab-poster" hidden>
-            {posters.map(({ id, slug, title, image }) => (
-              <div data-poster={id} hidden>
-                <img width="640" height="360" data-src={image} alt={title} />
-                <a class="lab-case-study" href={withBase(`/portfolio/${slug}/`)}>Read the project <span aria-hidden="true">↗</span></a>
-              </div>
-            ))}
-          </div>
-          <ul id="lab-awards" class="lab-awards" hidden>
-            {awards.map(({ slug, title }) => <li><a href={withBase(`/portfolio/${slug}/`)}>{title} <span aria-hidden="true">↗</span></a></li>)}
-          </ul>
           <pre id="lab-terminal" aria-label="Simulated terminal output" hidden></pre>
           <button id="lab-action" type="button" class="lab-button lab-button-primary" aria-keyshortcuts="Enter" hidden>
             <span id="lab-action-label"></span><kbd aria-hidden="true">↵</kbd>
           </button>
           {Object.entries(memoryScenes).map(([id, memory]) => (
-            <a data-memory-project={id} class="lab-case-study" href={withBase(`/portfolio/${memory.project}/`)} hidden>Read the project <span aria-hidden="true">↗</span></a>
+            <a data-memory-project={id} class="lab-case-study" href={withBase(`/portfolio/${memory.project}/`)} hidden>{id === 'unr' ? 'More about the exchange' : 'Read the project'} <span aria-hidden="true">↗</span></a>
           ))}
         </div>
+        <section id="lab-poster-browser" class="lab-poster-browser" role="dialog" aria-modal="true" aria-label="Memory posters" tabindex="-1" hidden>
+          <button data-poster-close class="lab-inspection-close" type="button" aria-label="Leave the poster wall" aria-keyshortcuts="Escape">ESC</button>
+          <div class="lab-poster-choice">
+            <p data-poster-status class="lab-poster-count"></p>
+            <h2 data-poster-title aria-live="polite"></h2>
+            <div class="lab-poster-navigation">
+              <button data-poster-step="-1" class="lab-button" type="button" aria-label="Previous poster">←</button>
+              <button data-poster-enter class="lab-button lab-button-primary" type="button" aria-keyshortcuts="Enter"><span>{posterWallCopy.enter}</span><kbd aria-hidden="true">↵</kbd></button>
+              <button data-poster-step="1" class="lab-button" type="button" aria-label="Next poster">→</button>
+            </div>
+          </div>
+        </section>
+        <section id="lab-awards-browser" class="lab-awards-browser" role="dialog" aria-modal="true" aria-label="Awards display" tabindex="-1" hidden>
+          <button data-award-close class="lab-inspection-close" type="button" aria-label="Back from award details or leave the display" aria-keyshortcuts="Escape">ESC</button>
+          <div id="lab-award-details" class="lab-award-details" data-award-details hidden>
+            {awards.map(award => (
+              <article data-award-record data-title={award.name} data-year={award.year} hidden>
+                <p class="lab-award-issuer">{award.issuer}</p>
+                <h3>Recognition</h3>
+                <ul>{award.results.map(result => <li>{result}</li>)}</ul>
+                <h3>My part <span>· {award.role}</span></h3>
+                <p>{award.contribution}</p>
+                <a href={withBase(`/portfolio/${award.work}/`)} target="_blank" rel="noopener noreferrer">View the work <span aria-hidden="true">↗</span></a>
+              </article>
+            ))}
+          </div>
+          <div class="lab-award-choice">
+            <p class="lab-poster-count"><span data-award-count></span><span aria-hidden="true"> · </span><span data-award-year></span></p>
+            <h2 data-award-title aria-live="polite"></h2>
+            <div class="lab-poster-navigation">
+              <button data-award-step="-1" class="lab-button" type="button" aria-label="Previous award">←</button>
+              <button data-award-toggle class="lab-button lab-button-primary" type="button" aria-controls="lab-award-details" aria-expanded="false" aria-keyshortcuts="Enter"><span>View details</span><kbd aria-hidden="true">↵</kbd></button>
+              <button data-award-step="1" class="lab-button" type="button" aria-label="Next award">→</button>
+            </div>
+          </div>
+        </section>
       </section>
       <footer class="lab-controls">
         <div class="lab-move" id="lab-move" hidden>
@@ -104,6 +129,18 @@ const home = withBase('/');
         </div>
       </footer>
       <div id="lab-scene-veil" class="lab-scene-veil" aria-hidden="true" hidden></div>
+      <dialog id="lab-photo-viewer" class="lab-photo-viewer" aria-labelledby="lab-photo-title">
+        <header class="lab-photo-header">
+          <div><span class="lab-photo-mode">▹ PLAYBACK</span><h2 id="lab-photo-title">{unrGraduationPhoto.title}</h2></div>
+          <button class="lab-inspection-close" type="button" aria-label="Close graduation photo" aria-keyshortcuts="Escape Enter Space">ESC</button>
+        </header>
+        <figure class="lab-photo-screen">
+          <img width="1600" height="1200" data-src={withBase(unrGraduationPhoto.src)} alt={unrGraduationPhoto.alt} />
+          <span class="lab-photo-frame" aria-hidden="true"></span>
+          <span class="lab-photo-number" aria-hidden="true">01 / 01</span>
+        </figure>
+        <footer class="lab-photo-footer"><p>{unrGraduationPhoto.reply}</p><span>{unrGraduationPhoto.location}</span></footer>
+      </dialog>
       <dialog id="lab-travel" class="lab-travel" aria-labelledby="lab-travel-title">
         <form method="dialog">
           <button class="lab-close" aria-label="Close destinations" value="cancel">×</button>

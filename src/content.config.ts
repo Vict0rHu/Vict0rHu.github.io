@@ -20,6 +20,7 @@ const projects = defineCollection({
     category: z.string().optional(),
     date: z.string().optional(),
     role: z.string().optional(),
+    labAward: z.object({ name: z.string(), issuer: z.string(), contribution: z.string() }).optional(),
     // Lower numbers show first in the grid.
     order: z.number().default(99),
     // Card thumbnail + one-line blurb shown in the grid.

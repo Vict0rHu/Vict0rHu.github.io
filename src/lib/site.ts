@@ -6,6 +6,7 @@ const publicationName = 'Jyun-Chi Hu';
 export const SITE = {
   name,
   publicationName,
+  profileImage: '/assets/img/my-profile-img.jpg',
   title: `${name} (${publicationName}) — Robotics Engineer`,
   description:
     `${name} (${publicationName}), Purdue robotics graduate student and AMD research associate. Projects in tactile robot learning, optical inspection, and teleoperation.`,
@@ -31,7 +32,7 @@ export function personStructuredData(site: URL) {
     alternateName: SITE.name,
     jobTitle: 'Robotics Engineer',
     url: homepage.href,
-    image: new URL(withBase('/assets/img/my-profile-img.jpg'), site).href,
+    image: new URL(withBase(SITE.profileImage), site).href,
     affiliation: { '@type': 'CollegeOrUniversity', name: 'Purdue University' },
     sameAs: [SITE.socials.linkedin, SITE.socials.github],
   };

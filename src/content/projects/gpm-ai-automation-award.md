@@ -4,6 +4,10 @@ filter: "Competitions"
 category: "Award · Equipment Design"
 date: "2024"
 role: "Project Lead"
+labAward:
+  name: "GPM AI Automation Award"
+  issuer: "Gallant Precision Machining"
+  contribution: "Led the design across optics, mechanics, firmware, and the AI inference pipeline."
 order: 9
 thumbnail: "/assets/img/portfolio/gpm-ai-automation-award/cover.jpg"
 description: "Honorable Mention for the AI optical-inspection design that grew into my patent-pending AOI device."

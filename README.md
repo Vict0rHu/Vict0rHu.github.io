@@ -22,6 +22,16 @@ Open the URL printed by the dev or preview server. Check the homepage, a project
 - `src/lab/` contains the 3D scenes, controls, and Lab content. Its page is `src/pages/lab.astro`.
 - `public/assets/` contains images and project media. Keep existing project slugs stable so inbound links keep working.
 
+## Interactive Lab
+
+Visitors can explore Victor’s room, the office, and the mountain overlook. Posters and the thought world lead to CONTACT research, optical inspection, egocentric teleoperation, and UNR exchange memories. The room also has an awards display with links to the corresponding work.
+
+- `src/lab/content.ts` defines the schedule, destinations, and interactions.
+- `src/lab/poster-wall-content.ts` defines poster positions and memory routes, including reserved slots for future memories.
+- `src/lab/awards-content.ts` defines the display order and project links. Award descriptions come from the project files’ `labAward` metadata.
+- `src/lab/unr-content.ts` holds the exchange memory’s scene content. Its scene construction, atmosphere, and characters live in the other `unr-*.ts` files.
+- `src/lab/collection-view.ts` and `collection-keys.ts` share camera transitions and keyboard handling between the poster and awards displays.
+
 ## Deployment and search
 
 GitHub Actions builds and deploys to GitHub Pages on pushes to `main`. The workflow can also be run manually. The production URL is set in `astro.config.mjs`.

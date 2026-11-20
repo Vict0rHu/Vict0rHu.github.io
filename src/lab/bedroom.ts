@@ -10,6 +10,9 @@ import { woodFloor } from './wood-floor';
 import { backpackModel, victorAvatar } from './victor-avatar';
 import { enclosedPrinter } from './enclosed-printer';
 import { entryClock } from './entry-clock';
+import { posterWall, posterWallLayer } from './poster-wall';
+import { awardsDisplay } from './awards-display';
+import { awardsLayer } from './awards-content';
 
 export function bedroom(fastRoutine: boolean) {
   const scene = new T.Scene();
@@ -21,7 +24,6 @@ export function bedroom(fastRoutine: boolean) {
   scene.add(ambient, fill, sun);
   const wall = 0xa79b8c;
   const trim = 0xe1dbd1;
-  const wood = 0x665064;
   const black = 0x19212d;
   const bounds = { left: -7.12, right: 7.12, back: -4.34, front: 4.34 };
   const partition = 3.25;
@@ -128,21 +130,24 @@ export function bedroom(fastRoutine: boolean) {
 
   const clock = entryClock(scene, shoeX, shoeZ - .05);
 
-  function windowAt(parent: T.Object3D, x: number, z: number, width: number, rotation = 0) {
+  function windowAt(parent: T.Object3D, id: string, x: number, z: number, width: number, rotation = 0) {
     const frame = new T.Group();
+    frame.name = `${id}-window-frame`;
     frame.position.set(x, 2.34, z);
     frame.rotation.y = rotation;
     parent.add(frame);
-    const pane = box(frame, [width, 1.16, .055], [0, 0, 0], 0x58698a, .55);
+    const pane = box(frame, [width, 1.16, .055], [0, 0, 0], 0x111b2b);
+    pane.name = `${id}-window-glass`;
+    pane.material.roughness = 1;
     for (const x of [-width / 2, 0, width / 2]) box(frame, [.065, 1.23, .09], [x, 0, .03], trim);
     box(frame, [width + .08, .065, .1], [0, .6, .03], trim);
     box(frame, [width + .16, .075, .16], [0, -.6, .05], trim);
     return pane.material;
   }
   const windows = [
-    windowAt(leftWall, -7.3, .18, 2.1, Math.PI / 2),
-    windowAt(backWall, -3.31, -4.52, 2.32),
-    windowAt(backWall, 5.36, -4.52, 1.84),
+    windowAt(leftWall, 'west', -7.3, .18, 2.1, Math.PI / 2),
+    windowAt(backWall, 'awards', -3.31, -4.52, 2.32),
+    windowAt(backWall, 'bathroom', 5.36, -4.52, 1.84),
   ];
   const rug = new T.Group();
   rug.position.set(-1.57, 0, 0);
@@ -208,41 +213,16 @@ export function bedroom(fastRoutine: boolean) {
   ceilingLights[1].position.set(-3.35, 3.45, 1.08);
   scene.add(...ceilingLights);
 
-  const posterGroup = new T.Group();
-  scene.add(posterGroup);
-  const posters = [
-    { id: 'poster', x: -.91, y: 2.35, w: .98, accent: 0x447f9a },
-    { id: 'teleopPoster', x: .11, y: 2.64, w: .72, accent: 0xbd8464 },
-    { id: 'aoiPoster', x: .94, y: 2.16, w: .8, accent: 0x746fac },
-  ] as const;
-  const posterAnchors = Object.fromEntries(posters.map(({ id, x, y, w, accent }) => {
-    box(posterGroup, [w, .87, .06], [x, y, -4.515], black);
-    box(posterGroup, [w - .09, .78, .02], [x, y, -4.475], 0xd5d3cb, .13);
-    box(posterGroup, [w - .17, .12, .019], [x, y + .26, -4.459], accent, .17);
-    for (const offset of [-w * .22, w * .19]) {
-      box(posterGroup, [.225, .29, .017], [x + offset, y - .03, -4.456], accent, .13);
-      box(posterGroup, [.2, .034, .017], [x + offset, y - .25, -4.456], 0x5d6376);
-    }
-    return [id, { point: new T.Vector3(x, y + .3, -4.37), target: new T.Vector3(x, 0, -3.72), radius: 1.24 }];
-  })) as Record<(typeof posters)[number]['id'], { point: T.Vector3; target: T.Vector3; radius: number }>;
+  const memoryWall = posterWall();
+  scene.add(memoryWall.model);
+  for (const surface of [backWall, memoryWall.model]) surface.traverse(object => object.layers.enable(posterWallLayer));
+  for (const light of [ambient, fill, sun, ...ceilingLights]) light.layers.enable(posterWallLayer);
 
   const awardX = -3.32;
-  box(scene, [2.25, .77, .76], [awardX, .385, -4.09], wood);
-  box(scene, [2.31, .075, .8], [awardX, .81, -4.09], 0x916f68);
-  for (const x of [awardX - .55, awardX + .55]) {
-    box(scene, [1.04, .6, .05], [x, .39, -3.686], 0x775e63);
-    box(scene, [.25, .045, .07], [x, .51, -3.65], 0xba9b7b);
-  }
-  for (const [i, offset] of [-.72, 0, .72].entries()) {
-    const x = awardX + offset;
-    const z = -4.02;
-    const color = [0xc58c52, 0xf0be61, 0xb8b5b9][i];
-    box(scene, [.24, .07, .23], [x, .88, z], 0x262228);
-    cylinder(scene, .055, .15, x, .98, z, color);
-    const cup = new T.Mesh(new T.CylinderGeometry(.145, .062, .21, 14), new T.MeshStandardMaterial({ color, metalness: .43, roughness: .3, emissive: color, emissiveIntensity: .13 }));
-    cup.position.set(x, 1.12, z);
-    scene.add(cup);
-  }
+  const awards = awardsDisplay();
+  scene.add(awards.model);
+  for (const surface of [backWall, awards.model]) surface.traverse(object => object.layers.enable(awardsLayer));
+  for (const light of [ambient, fill, sun, ...ceilingLights]) light.layers.enable(awardsLayer);
   const printer = enclosedPrinter().model;
   printer.position.set(-2.36, 1.06, -.06);
   printer.scale.setScalar(.76);
@@ -464,7 +444,7 @@ export function bedroom(fastRoutine: boolean) {
   const travel = travelCircle(scene, 6.22, entranceZ);
   const spawn = new T.Vector3(5.04, 0, entranceZ);
   const anchors = {
-    ...posterAnchors,
+    posterWall: { point: new T.Vector3(.05, 2.55, -4.37), target: new T.Vector3(.05, 0, -3.35), radius: 1.85 },
     terminal: { point: new T.Vector3(3.02, 2.48, -.78), target: new T.Vector3(1.45, 0, -.52), radius: .98 },
     backpack: { point: new T.Vector3(bagRack.x, bagRack.y + .63, bagRack.z), target: bagStop, radius: 1.25 },
     victor: { point: new T.Vector3(1.34, 1.65, -.88), target: new T.Vector3(.67, 0, -.88), radius: 1.08 },
@@ -502,7 +482,9 @@ export function bedroom(fastRoutine: boolean) {
   const cool = new T.Color(0xffeddd);
   const nightAmbient = ambient.color.clone();
   const morningAmbient = new T.Color(0xffddbf);
-  const sky = new T.Color(0x6a80a7);
+  const windowNight = new T.Color(0x111b2b);
+  const windowDay = new T.Color(0xb2c9d5);
+  const windowDawn = new T.Color(0xf1c395);
   scene.background = night.clone();
   let state: RoomState = 'awake';
   let blueLight = 9;
@@ -524,8 +506,9 @@ export function bedroom(fastRoutine: boolean) {
     sun.color.copy(cool).lerp(warm, warmth);
     sun.intensity = light * (3.2 + warmth * 1.4);
     for (const pane of windows) {
-      pane.color.copy(sky).lerp(sun.color, light * .85);
+      pane.color.copy(windowNight).lerp(windowDay, light).lerp(windowDawn, light * warmth * .55);
       pane.emissive.copy(pane.color);
+      pane.emissiveIntensity = .04 + light * .34;
     }
     blueLight = 9 - light * 4;
     syncLighting();
@@ -704,7 +687,7 @@ export function bedroom(fastRoutine: boolean) {
   setLight('01:00');
   return {
     scene, anchors, bounds, travel, spawn, bedActions, setLight, setStatus, orientWalls, updateVictor,
-    bathroomDoor: bathDoor, clock,
+    bathroomDoor: bathDoor, clock, posterWall: memoryWall, awards,
     get obstacles() { return bathDoor.blocked ? obstaclesWithDoor : obstaclesWithOpenDoor; },
     bathroomExitRoute(visitor: T.Vector3) { return walkingRoute(space, visitor, bathroomExit); },
     setBlanketLump(visible: boolean) { blanketLump.visible = visible; },

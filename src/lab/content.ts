@@ -1,11 +1,17 @@
+import { unrProject, unrTitle } from './unr-content';
+
 export const CONTACT_ID = 'visuotactile-diffusion-policy';
 const contactTitle = 'CONTACT Research';
 
+export const posterPrints = {
+  poster: { title: ['CONTACT', 'RESEARCH'], caption: 'VISION + TOUCH / ROBOT DISASSEMBLY', accent: '#447f9a', paper: '#cadad6' },
+  teleopPoster: { title: ['EGOCENTRIC', 'TELEOPERATION'], caption: 'HEAD TRACKING / HAND CONTROL', accent: '#b57958', paper: '#e1cbb6' },
+  aoiPoster: { title: ['PHOTOELASTIC', 'INSPECTION'], caption: 'POLARIZED LIGHT / AUTOMATED IMAGING', accent: '#746fac', paper: '#d6d2e0' },
+} as const;
+
 export const objects = {
-  poster: { label: contactTitle, detail: 'A research poster about a robot learning to take things apart by feel.', action: 'Step into the memory' },
-  teleopPoster: { label: 'Teleoperation poster', detail: 'The Franka and pan–tilt camera setup from the VR demo.', action: 'Step into the memory' },
-  aoiPoster: { label: 'Optical inspection poster', detail: 'An optical inspection prototype from Victor’s time in Taiwan.', action: 'Step into the memory' },
-  awards: { label: 'Trophy cabinet', detail: 'Awards from a few builds and competitions.' },
+  posterWall: { label: 'Browse memories' },
+  awards: { label: 'Browse awards' },
   printer: { label: '3D printer', detail: 'A half-finished bracket sits on the build plate.' },
   robotBench: { label: 'Robotics workbench', detail: 'A compact SO-101-style follower arm with a rotating base, articulated joints, and a two-finger gripper.' },
   bathroom: { label: 'Bathroom', detail: 'The little robot checks the sink. No leaks to report.' },
@@ -23,6 +29,10 @@ export const objects = {
   mindPanda: { label: contactTitle },
   mindAoi: { label: 'AI Photoelastic Inspection' },
   mindTeleop: { label: 'Egocentric Teleoperation' },
+  mindUnr: { label: unrTitle },
+  unrBalloons: { label: 'Balloon morning', detail: 'We got here before sunrise, spread out a picnic blanket, and watched the balloons go up. Totally worth the early alarm.' },
+  unrSolar: { label: 'Victor', detail: '“Hey! We’re checking the solar storage setup. Pass me the meter?”', action: 'Continue' },
+  unrPhoto: { label: 'Ask to see the photo' },
   aoiInspection: { label: 'Run inspection', detail: 'Run a reconstructed imaging cycle on the four-position specimen tray.' },
   aoiVictor: { label: 'Victor', detail: '“Wait, who are you? …Well, since you’re here, want to see what I’m building?”', action: 'Ask about the project' },
   teleopVictor: { label: 'Victor', detail: '“Hey! I’m trying to move this part without taking off the headset. Want to see how it works?”', action: 'Ask about the project' },
@@ -32,14 +42,6 @@ export const objects = {
 
 export const bedPrompts = { hide: objects.bed.label, nap: 'Nap beside Victor', exit: 'Hop out of bed' };
 
-export const posterProjects = {
-  poster: CONTACT_ID,
-  teleopPoster: 'fpv-ptz-teleoperation',
-  aoiPoster: 'aoi-ai-inspection',
-} as const;
-
-export const awardProjects = ['ntnu-mechatronics-capstone', 'gpm-ai-automation-award', 'starkhacks-2026'] as const;
-
 export function daylightAt(time: string) {
   const [hour, minute] = time.split(':').map(Number);
   const minutes = hour * 60 + minute;
@@ -48,20 +50,24 @@ export function daylightAt(time: string) {
 }
 
 export type ObjectId = keyof typeof objects;
-export type MemoryEntry = 'victor' | 'dream';
+export type MemoryEntry = 'victor' | 'dream' | 'posters';
 export type RoomState = 'awake' | 'asleep' | 'away' | 'shower' | 'lounge';
-export const memoryPortals = { mindPanda: 'memory', mindAoi: 'aoi', mindTeleop: 'teleop' } as const;
+export const memoryPortals = { mindPanda: 'memory', mindAoi: 'aoi', mindTeleop: 'teleop', mindUnr: 'unr' } as const;
 export type MindPortal = keyof typeof memoryPortals;
 export type MemoryScene = typeof memoryPortals[MindPortal];
 export type Destination = MemoryScene | Exclude<TravelDestination, 'room'> | 'mind';
-export const posterMemories = { poster: 'memory', teleopPoster: 'teleop', aoiPoster: 'aoi' } as const satisfies Record<keyof typeof posterProjects, MemoryScene>;
 export const memoryScenes = {
   memory: { title: contactTitle, objects: ['contactVictor'], project: CONTACT_ID },
   aoi: { title: 'AI Photoelastic Inspection', objects: ['aoiInspection', 'aoiVictor'], project: 'aoi-ai-inspection' },
   teleop: { title: 'Egocentric Teleoperation', objects: ['teleopVictor', 'teleopPower'], project: 'fpv-ptz-teleoperation' },
+  unr: { title: unrTitle, objects: ['unrBalloons', 'unrSolar', 'unrPhoto'], project: unrProject },
 } as const;
 export const mindObjects = Object.keys(memoryPortals) as MindPortal[];
 export const memoryVictorDetails = {
+  unrSolar: [
+    '“I’m checking the storage unit with a multimeter. My lab partner is writing down the readings while the panel supplies power.”',
+    '“The exchange was a lot of learning on the fly. New classes, new lab partners, and figuring things out together in English.”',
+  ],
   contactVictor: [
     '“I use the SpaceMouse to guide the Panda through each disassembly. My lab partner resets the fixture and moves the pieces around between takes.”',
     '“The front camera sees the whole fixture. The wrist camera moves with the gripper, so it can see things up close until the fingers get in the way.”',
